@@ -16,10 +16,10 @@ export default function News() {
         setError('Failed to fetch news, using mock data');
         console.error('Fetch error:', err.message);
         // Mock data for testing
-        setNews([
-          { id: 1, title: 'Mock News 1', content: 'Mock content 1' },
-          { id: 2, title: 'Mock News 2', content: 'Mock content 2' },
-        ]);
+        // setNews([
+        //   { id: 1, title: 'Mock News 1', content: 'Mock content 1' },
+        //   { id: 2, title: 'Mock News 2', content: 'Mock content 2' },
+        // ]);
       }
     };
     fetchNews();

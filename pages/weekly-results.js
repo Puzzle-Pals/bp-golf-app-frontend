@@ -1,57 +1,42 @@
+import axios from 'axios';
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
 
 export default function WeeklyResults() {
   const [results, setResults] = useState([]);
-  const [error, setError] = useState('');
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchResults = async () => {
+    const fetchData = async () => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/weekly_results`);
-        if (!res.ok) throw new Error('Failed to fetch');
-        const data = await res.json();
-        setResults(data);
+        const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+        const response = await axios.get(`${API_BASE_URL}/api/weekly_results`);
+        setResults(response.data.weekly_results || []);
       } catch (err) {
-        setError('Failed to fetch weekly results');
+        setError('Failed to fetch weekly results, using mock data');
+        console.error('Fetch error:', err.message);
+        // Mock data for testing
+        // setResults([
+        //   { id: 1, player_id: 1, week: 1, score: 72 },
+        //   { id: 2, player_id: 2, week: 1, score: 75 },
+        // ]);
       }
     };
-    fetchResults();
+    fetchData();
   }, []);
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#1B4D3E' }}>
-      <nav style={{ backgroundColor: '#3C2F2F', padding: '1rem', boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Link href="/" style={{ textDecoration: 'none' }}>
-            <h1 style={{ color: '#F5E8C7', fontSize: '1.5rem', fontWeight: 'bold' }}>BP Men’s League</h1>
-          </Link>
-          <div className="nav-links">
-            <Link href="/weekly-results" style={{ color: '#F5E8C7', textDecoration: 'none', transition: 'color 0.2s' }} onMouseOver={(e) => e.target.style.color = '#C71585'} onMouseOut={(e) => e.target.style.color = '#F5E8C7'}>
-              Weekly Results
-            </Link>
-            <Link href="/player-stats" style={{ color: '#F5E8C7', textDecoration: 'none', transition: 'color 0.2s' }} onMouseOver={(e) => e.target.style.color = '#C71585'} onMouseOut={(e) => e.target.style.color = '#F5E8C7'}>
-              Player Stats
-            </Link>
-            <Link href="/leaderboard" style={{ color: '#F5E8C7', textDecoration: 'none', transition: 'color 0.2s' }} onMouseOver={(e) => e.target.style.color = '#C71585'} onMouseOut={(e) => e.target.style.color = '#F5E8C7'}>
-              Leaderboard
-            </Link>
-          </div>
-        </div>
-      </nav>
-      <main style={{ maxWidth: '1200px', margin: '0 auto', padding: '3rem 0' }}>
-        <h2 style={{ fontSize: '1.875rem', color: '#F5E8C7', fontWeight: 'bold', marginBottom: '1.5rem', textAlign: 'center' }}>Weekly Results</h2>
-        {error && <p style={{ color: '#C71585', textAlign: 'center' }}>{error}</p>}
-        <div style={{ display: 'grid', gap: '1.5rem' }}>
-          {results.map((result) => (
-            <div key={result.id} style={{ backgroundColor: '#F5E8C7', padding: '1.5rem', borderRadius: '0.5rem', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-              <p style={{ color: '#3C2F2F' }}>Round ID: {result.roundId}</p>
-              <p style={{ color: '#3C2F2F' }}>Player ID: {result.playerId}</p>
-              <p style={{ color: '#3C2F2F' }}>Score: {result.score}</p>
-            </div>
+    <div>
+      <h1>Weekly Results</h1>
+      {error && <p style={{ color: 'red' }}>{error}</p>}
+      {results.length > 0 ? (
+        <ul>
+          {results.map((item, index) => (
+            <li key={index}>Player {item.player_id}, Week {item.week}: {item.score}</li>
           ))}
-        </div>
-      </main>
+        </ul>
+      ) : (
+        <p>No weekly results available</p>
+      )}
     </div>
   );
 }

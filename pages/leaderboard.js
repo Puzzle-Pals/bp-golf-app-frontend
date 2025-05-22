@@ -1,74 +1,61 @@
+import axios from 'axios';
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
 
 export default function Leaderboard() {
   const [leaderboard, setLeaderboard] = useState([]);
-  const [pointsSystemEnabled, setPointsSystemEnabled] = useState(false);
-  const [error, setError] = useState('');
+  const [scoringSystem, setScoringSystem] = useState([]);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchLeaderboard = async () => {
+    const fetchData = async () => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/leaderboard`);
-        if (!res.ok) throw new Error('Failed to fetch');
-        const data = await res.json();
-        setLeaderboard(data);
+        const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+        const [leaderboardResponse, scoringResponse] = await Promise.all([
+          axios.get(`${API_BASE_URL}/api/leaderboard`),
+          axios.get(`${API_BASE_URL}/api/scoring_system`),
+        ]);
+        setLeaderboard(leaderboardResponse.data.leaderboard || []);
+        setScoringSystem(scoringResponse.data.scoring_system || []);
       } catch (err) {
-        setError('Failed to fetch leaderboard');
+        setError('Failed to fetch leaderboard data, using mock data');
+        console.error('Fetch error:', err.message);
+        // Mock data for testing
+        // setLeaderboard([
+        //   { id: 1, player_id: 1, total_points: 100 },
+        //   { id: 2, player_id: 2, total_points: 90 },
+        // ]);
+        // setScoringSystem([
+        //   { id: 1, rule_name: 'Birdie', points: 3 },
+        //   { id: 2, rule_name: 'Par', points: 1 },
+        // ]);
       }
     };
-    const fetchPointsSystem = async () => {
-      try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/scoring_system`);
-        if (!res.ok) throw new Error('Failed to fetch');
-        const data = await res.json();
-        setPointsSystemEnabled(data.pointsSystemEnabled || false);
-      } catch (err) {
-        setError('Failed to fetch points system');
-      }
-    };
-    fetchLeaderboard();
-    fetchPointsSystem();
+    fetchData();
   }, []);
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#1B4D3E' }}>
-      <nav style={{ backgroundColor: '#3C2F2F', padding: '1rem', boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Link href="/" style={{ color: '#F5E8C7', fontSize: '1.5rem', fontWeight: 'bold', textDecoration: 'none' }}>
-            BP Men’s League
-          </Link>
-          <div className="nav-links">
-            <Link href="/weekly-results" style={{ color: '#F5E8C7', textDecoration: 'none', transition: 'color 0.2s' }} onMouseOver={(e) => e.target.style.color = '#C71585'} onMouseOut={(e) => e.target.style.color = '#F5E8C7'}>
-              Weekly Results
-            </Link>
-            <Link href="/player-stats" style={{ color: '#F5E8C7', textDecoration: 'none', transition: 'color 0.2s' }} onMouseOver={(e) => e.target.style.color = '#C71585'} onMouseOut={(e) => e.target.style.color = '#F5E8C7'}>
-              Player Stats
-            </Link>
-            <Link href="/leaderboard" style={{ color: '#F5E8C7', textDecoration: 'none', transition: 'color 0.2s' }} onMouseOver={(e) => e.target.style.color = '#C71585'} onMouseOut={(e) => e.target.style.color = '#F5E8C7'}>
-              Leaderboard
-            </Link>
-          </div>
-        </div>
-      </nav>
-      <main style={{ maxWidth: '1200px', margin: '0 auto', padding: '3rem 0' }}>
-        <h2 style={{ fontSize: '1.875rem', color: '#F5E8C7', fontWeight: 'bold', marginBottom: '1.5rem', textAlign: 'center' }}>Leaderboard</h2>
-        {error && <p style={{ color: '#C71585', textAlign: 'center' }}>{error}</p>}
-        <div style={{ display: 'grid', gap: '1.5rem' }}>
-          <div style={{ backgroundColor: '#F5E8C7', padding: '1rem', borderRadius: '0.5rem', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', display: 'grid', gridTemplateColumns: pointsSystemEnabled ? '1fr 1fr 1fr' : '1fr 1fr', gap: '1rem' }}>
-            <p style={{ color: '#3C2F2F', fontWeight: 'bold' }}>Player ID</p>
-            <p style={{ color: '#3C2F2F', fontWeight: 'bold' }}>Total Points</p>
-            {pointsSystemEnabled && <p style={{ color: '#3C2F2F', fontWeight: 'bold' }}>Points</p>}
-          </div>
-          {leaderboard.map((entry) => (
-            <div key={entry.playerId} style={{ backgroundColor: '#F5E8C7', padding: '1.5rem', borderRadius: '0.5rem', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', display: 'grid', gridTemplateColumns: pointsSystemEnabled ? '1fr 1fr 1fr' : '1fr 1fr', gap: '1rem' }}>
-              <p style={{ color: '#3C2F2F' }}>{entry.playerId}</p>
-              <p style={{ color: '#3C2F2F' }}>{entry.totalPoints || 'N/A'}</p>
-              {pointsSystemEnabled && <p style={{ color: '#3C2F2F' }}>{entry.points || '0'}</p>}
-            </div>
+    <div>
+      <h1>Leaderboard</h1>
+      {error && <p style={{ color: 'red' }}>{error}</p>}
+      {leaderboard.length > 0 ? (
+        <ul>
+          {leaderboard.map((item, index) => (
+            <li key={index}>Player {item.player_id}: {item.total_points} points</li>
           ))}
-        </div>
-      </main>
+        </ul>
+      ) : (
+        <p>No leaderboard data available</p>
+      )}
+      <h2>Scoring System</h2>
+      {scoringSystem.length > 0 ? (
+        <ul>
+          {scoringSystem.map((item, index) => (
+            <li key={index}>{item.rule_name}: {item.points} points</li>
+          ))}
+        </ul>
+      ) : (
+        <p>No scoring system data available</p>
+      )}
     </div>
   );
 }
