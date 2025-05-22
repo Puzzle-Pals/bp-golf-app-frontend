@@ -1,46 +1,32 @@
-import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useState, useEffect } from 'react';
 
 export default function Diagnostic() {
-  const [status, setStatus] = useState({});
-
-  const endpoints = [
-    '/api/players',
-    '/api/events',
-    '/api/weekly_results',
-    '/api/news',
-    '/api/leaderboard',
-    '/api/scoring_system',
-  ];
+  const [data, setData] = useState(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    async function checkEndpoints() {
-      const results = {};
-      for (const endpoint of endpoints) {
-        try {
-          const res = await axios.get(`https://bp-golf-app-backend.vercel.app${endpoint}`, { timeout: 5000 });
-          results[endpoint] = { status: res.status, message: 'OK' };
-        } catch (err) {
-          results[endpoint] = { status: err.response?.status || 'N/A', message: err.message };
-        }
+    const fetchData = async () => {
+      try {
+        const response = await axios.get('/api/diagnostic'); // Replace with your actual API endpoint
+        setData(response.data);
+      } catch (err) {
+        setError('Failed to fetch diagnostic data');
+        console.error(err);
       }
-      setStatus(results);
-    }
-    checkEndpoints();
+    };
+    fetchData();
   }, []);
 
   return (
-    <div className="admin-tab">
-      <h1>Backend Diagnostic</h1>
-      <p>Backend URL: https://bp-golf-app-backend.vercel.app</p>
-      <h2>Endpoint Status</h2>
-      <ul>
-        {Object.entries(status).map(([endpoint, { status, message }]) => (
-          <li key={endpoint}>
-            {endpoint}: Status {status} - {message}
-          </li>
-        ))}
-      </ul>
+    <div>
+      <h1>Diagnostic Page</h1>
+      {error && <p style={{ color: 'red' }}>{error}</p>}
+      {data ? (
+        <pre>{JSON.stringify(data, null, 2)}</pre>
+      ) : (
+        <p>Loading diagnostic data...</p>
+      )}
     </div>
   );
 }
