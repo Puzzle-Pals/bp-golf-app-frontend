@@ -8,11 +8,14 @@ export default function Diagnostic() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get('/api/diagnostic'); // Replace with your actual API endpoint
+        const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+        const response = await axios.get(`${API_BASE_URL}/api/diagnostic`);
         setData(response.data);
       } catch (err) {
-        setError('Failed to fetch diagnostic data');
-        console.error(err);
+        setError('Failed to fetch diagnostic data, using mock data');
+        console.error('Fetch error:', err.message);
+        // Mock data for testing
+        setData({ diagnostics: [] });
       }
     };
     fetchData();
