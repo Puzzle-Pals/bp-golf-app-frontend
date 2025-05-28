@@ -6,7 +6,7 @@ if (!API_BASE_URL) {
 }
 
 export async function adminLogin(password) {
-  const res = await fetch(`${API_BASE_URL}/admin/login`, {
+  const res = await fetch(`${API_BASE_URL}/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ password }),
