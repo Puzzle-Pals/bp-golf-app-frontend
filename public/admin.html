@@ -11,188 +11,140 @@
     <div class="container mt-4">
         <h1 class="text-center mb-4">Admin Panel</h1>
         
-        <div class="card mb-4">
+        <div id="loginCard" class="card mx-auto mb-4" style="max-width:400px;">
             <div class="card-header">
-                <h3>Add New Course</h3>
+                <h3>Admin Login</h3>
             </div>
             <div class="card-body">
-                <form id="courseForm" autocomplete="off">
+                <form id="loginForm">
                     <div class="mb-3">
-                        <label for="courseName" class="form-label">Course Name</label>
-                        <input type="text" class="form-control" id="courseName" required>
+                        <label for="adminUsername" class="form-label">Username</label>
+                        <input type="text" class="form-control" id="adminUsername" required>
                     </div>
-                    <div id="parInputs">
-                        <div class="row mb-2">
-                            <div class="col-2">
-                                <label class="form-label">Hole 1</label>
-                                <input type="number" class="form-control par-input" min="1" required>
-                            </div>
-                            <div class="col-2">
-                                <label class="form-label">Hole 2</label>
-                                <input type="number" class="form-control par-input" min="1" required>
-                            </div>
-                            <div class="col-2">
-                                <label class="form-label">Hole 3</label>
-                                <input type="number" class="form-control par-input" min="1" required>
-                            </div>
-                            <div class="col-2">
-                                <label class="form-label">Hole 4</label>
-                                <input type="number" class="form-control par-input" min="1" required>
-                            </div>
-                            <div class="col-2">
-                                <label class="form-label">Hole 5</label>
-                                <input type="number" class="form-control par-input" min="1" required>
-                            </div>
-                            <div class="col-2">
-                                <label class="form-label">Hole 6</label>
-                                <input type="number" class="form-control par-input" min="1" required>
-                            </div>
-                        </div>
-                        <div class="row mb-2">
-                            <div class="col-2">
-                                <label class="form-label">Hole 7</label>
-                                <input type="number" class="form-control par-input" min="1" required>
-                            </div>
-                            <div class="col-2">
-                                <label class="form-label">Hole 8</label>
-                                <input type="number" class="form-control par-input" min="1" required>
-                            </div>
-                            <div class="col-2">
-                                <label class="form-label">Hole 9</label>
-                                <input type="number" class="form-control par-input" min="1" required>
-                            </div>
-                            <div class="col-2">
-                                <label class="form-label">Hole 10</label>
-                                <input type="number" class="form-control par-input" min="1" required>
-                            </div>
-                            <div class="col-2">
-                                <label class="form-label">Hole 11</label>
-                                <input type="number" class="form-control par-input" min="1" required>
-                            </div>
-                            <div class="col-2">
-                                <label class="form-label">Hole 12</label>
-                                <input type="number" class="form-control par-input" min="1" required>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-2">
-                                <label class="form-label">Hole 13</label>
-                                <input type="number" class="form-control par-input" min="1" required>
-                            </div>
-                            <div class="col-2">
-                                <label class="form-label">Hole 14</label>
-                                <input type="number" class="form-control par-input" min="1" required>
-                            </div>
-                            <div class="col-2">
-                                <label class="form-label">Hole 15</label>
-                                <input type="number" class="form-control par-input" min="1" required>
-                            </div>
-                            <div class="col-2">
-                                <label class="form-label">Hole 16</label>
-                                <input type="number" class="form-control par-input" min="1" required>
-                            </div>
-                            <div class="col-2">
-                                <label class="form-label">Hole 17</label>
-                                <input type="number" class="form-control par-input" min="1" required>
-                            </div>
-                            <div class="col-2">
-                                <label class="form-label">Hole 18</label>
-                                <input type="number" class="form-control par-input" min="1" required>
-                            </div>
-                        </div>
+                    <div class="mb-3">
+                        <label for="adminPassword" class="form-label">Password</label>
+                        <input type="password" class="form-control" id="adminPassword" required>
                     </div>
-                    <button type="submit" class="btn btn-primary mt-3">Add Course</button>
+                    <button type="submit" class="btn btn-primary w-100">Login</button>
                 </form>
+                <div id="loginError" class="text-danger mt-2" style="display:none;"></div>
             </div>
         </div>
-        
-        <div class="card">
-            <div class="card-header">
-                <h3>Current Courses</h3>
+
+        <div id="adminPanel" style="display:none;">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3>Add New Course</h3>
+                </div>
+                <div class="card-body">
+                    <form id="courseForm" autocomplete="off">
+                        <div class="mb-3">
+                            <label for="courseName" class="form-label">Course Name</label>
+                            <input type="text" class="form-control" id="courseName" required>
+                        </div>
+                        <div id="parInputs">
+                            <!-- 18 hole inputs -->
+                            <div class="row mb-2">
+                                <!-- Holes 1-6 -->
+                                <div class="col-2">
+                                    <label class="form-label">Hole 1</label>
+                                    <input type="number" class="form-control par-input" min="1" required>
+                                </div>
+                                <div class="col-2">
+                                    <label class="form-label">Hole 2</label>
+                                    <input type="number" class="form-control par-input" min="1" required>
+                                </div>
+                                <div class="col-2">
+                                    <label class="form-label">Hole 3</label>
+                                    <input type="number" class="form-control par-input" min="1" required>
+                                </div>
+                                <div class="col-2">
+                                    <label class="form-label">Hole 4</label>
+                                    <input type="number" class="form-control par-input" min="1" required>
+                                </div>
+                                <div class="col-2">
+                                    <label class="form-label">Hole 5</label>
+                                    <input type="number" class="form-control par-input" min="1" required>
+                                </div>
+                                <div class="col-2">
+                                    <label class="form-label">Hole 6</label>
+                                    <input type="number" class="form-control par-input" min="1" required>
+                                </div>
+                            </div>
+                            <div class="row mb-2">
+                                <!-- Holes 7-12 -->
+                                <div class="col-2">
+                                    <label class="form-label">Hole 7</label>
+                                    <input type="number" class="form-control par-input" min="1" required>
+                                </div>
+                                <div class="col-2">
+                                    <label class="form-label">Hole 8</label>
+                                    <input type="number" class="form-control par-input" min="1" required>
+                                </div>
+                                <div class="col-2">
+                                    <label class="form-label">Hole 9</label>
+                                    <input type="number" class="form-control par-input" min="1" required>
+                                </div>
+                                <div class="col-2">
+                                    <label class="form-label">Hole 10</label>
+                                    <input type="number" class="form-control par-input" min="1" required>
+                                </div>
+                                <div class="col-2">
+                                    <label class="form-label">Hole 11</label>
+                                    <input type="number" class="form-control par-input" min="1" required>
+                                </div>
+                                <div class="col-2">
+                                    <label class="form-label">Hole 12</label>
+                                    <input type="number" class="form-control par-input" min="1" required>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <!-- Holes 13-18 -->
+                                <div class="col-2">
+                                    <label class="form-label">Hole 13</label>
+                                    <input type="number" class="form-control par-input" min="1" required>
+                                </div>
+                                <div class="col-2">
+                                    <label class="form-label">Hole 14</label>
+                                    <input type="number" class="form-control par-input" min="1" required>
+                                </div>
+                                <div class="col-2">
+                                    <label class="form-label">Hole 15</label>
+                                    <input type="number" class="form-control par-input" min="1" required>
+                                </div>
+                                <div class="col-2">
+                                    <label class="form-label">Hole 16</label>
+                                    <input type="number" class="form-control par-input" min="1" required>
+                                </div>
+                                <div class="col-2">
+                                    <label class="form-label">Hole 17</label>
+                                    <input type="number" class="form-control par-input" min="1" required>
+                                </div>
+                                <div class="col-2">
+                                    <label class="form-label">Hole 18</label>
+                                    <input type="number" class="form-control par-input" min="1" required>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary mt-3">Add Course</button>
+                    </form>
+                </div>
             </div>
-            <div class="card-body">
-                <div id="coursesList"></div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h3>Current Courses</h3>
+                </div>
+                <div class="card-body">
+                    <div id="coursesList"></div>
+                </div>
+            </div>
+            <div class="text-end mt-3">
+                <button id="logoutBtn" class="btn btn-secondary btn-sm">Logout</button>
             </div>
         </div>
     </div>
 
-    <script>
-    // Use relative path for API
-    const TOKEN_KEY = "admin_jwt";
-    document.addEventListener('DOMContentLoaded', () => {
-        fetchCourses();
-
-        // Add course
-        document.getElementById('courseForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const courseName = document.getElementById('courseName').value.trim();
-            const parInputs = Array.from(document.querySelectorAll('.par-input'));
-            const pars = parInputs.map(inp => parseInt(inp.value, 10));
-            if (pars.length !== 18 || pars.some(isNaN)) {
-                alert('Please enter all 18 hole pars.');
-                return;
-            }
-            try {
-                const token = localStorage.getItem(TOKEN_KEY);
-                const res = await fetch('/api/admin/courses', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-                    },
-                    body: JSON.stringify({ name: courseName, pars })
-                });
-                if (!res.ok) throw new Error('Failed to add course');
-                document.getElementById('courseForm').reset();
-                fetchCourses();
-            } catch (err) {
-                alert(err.message);
-            }
-        });
-    });
-
-    async function fetchCourses() {
-        try {
-            const token = localStorage.getItem("admin_jwt");
-            const res = await fetch('/api/admin/courses', {
-                headers: token ? { 'Authorization': `Bearer ${token}` } : {}
-            });
-            if (!res.ok) throw new Error('Failed to fetch courses');
-            const data = await res.json();
-            const courses = Array.isArray(data.courses) ? data.courses : data;
-            const coursesList = document.getElementById('coursesList');
-            coursesList.innerHTML = '';
-            if (!courses.length) {
-                coursesList.innerHTML = "<p>No courses found.</p>";
-                return;
-            }
-            courses.forEach(course => {
-                const div = document.createElement('div');
-                div.className = "mb-2 p-2 border rounded d-flex justify-content-between align-items-center";
-                div.innerHTML = `<span><strong>${course.name}</strong> (Pars: ${course.pars ? course.pars.join(', ') : ''})</span>
-                <button class="btn btn-danger btn-sm" onclick="deleteCourse('${course.id}')">Delete</button>`;
-                coursesList.appendChild(div);
-            });
-        } catch (err) {
-            document.getElementById('coursesList').innerHTML = `<p class="text-danger">${err.message}</p>`;
-        }
-    }
-
-    // Make deleteCourse globally available
-    window.deleteCourse = async function(id) {
-        if (!confirm('Are you sure you want to delete this course?')) return;
-        try {
-            const token = localStorage.getItem("admin_jwt");
-            const res = await fetch(`/api/admin/courses/${id}`, {
-                method: 'DELETE',
-                headers: token ? { 'Authorization': `Bearer ${token}` } : {}
-            });
-            if (!res.ok) throw new Error('Failed to delete course');
-            fetchCourses();
-        } catch (err) {
-            alert(err.message);
-        }
-    }
-    </script>
+    <script src="admin.js"></script>
 </body>
 </html>
