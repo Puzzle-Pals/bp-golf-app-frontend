@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 
 const ADMIN_PASSWORD = "boss102935";
-const JWT_SECRET = "mysupersecretjwtkey";
+const JWT_SECRET = "bpgolfapp"; // Use a strong, random secret in production
 
 export default function handler(req, res) {
   if (req.method !== "POST") {

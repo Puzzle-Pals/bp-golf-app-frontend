@@ -1,48 +1,63 @@
 import { useEffect, useState } from "react";
-import { useRouter } from "next/router";
-import { apiFetch } from "../../utils/api";
+import AdminLogin from "../../components/AdminLogin";
 
 export default function AdminDashboard() {
-  const router = useRouter();
-  const [adminData, setAdminData] = useState(null);
+  const [loggedIn, setLoggedIn] = useState(false);
+  const [data, setData] = useState(null);
   const [error, setError] = useState("");
 
+  // Check for token on mount
   useEffect(() => {
-    const token = typeof window !== "undefined" ? localStorage.getItem("admin_jwt") : null;
-    if (!token) {
-      router.push("/admin/login");
-      return;
+    const token = localStorage.getItem("token");
+    if (token) {
+      setLoggedIn(true);
+    } else {
+      setLoggedIn(false);
     }
-    (async () => {
-      try {
-        const res = await apiFetch("/api/admin/protected");
-        if (res.status === 401) {
-          setError("Session expired. Please log in again.");
-          localStorage.removeItem("admin_jwt");
-          setTimeout(() => router.push("/admin/login"), 1500);
-        } else {
-          const data = await res.json();
-          setAdminData(data);
-        }
-      } catch {
-        setError("Failed to fetch admin data.");
-      }
-    })();
-  }, [router]);
+  }, []);
 
-  const handleLogout = () => {
-    localStorage.removeItem("admin_jwt");
-    router.push("/admin/login");
-  };
+  // Fetch protected data if logged in
+  useEffect(() => {
+    if (!loggedIn) return;
+    const token = localStorage.getItem("token");
+    fetch("/api/admin/protected", {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then(r => r.json())
+      .then(d => {
+        if (d.error) {
+          setError(d.error);
+          setLoggedIn(false);
+          localStorage.removeItem("token");
+        } else {
+          setData(d);
+        }
+      });
+  }, [loggedIn]);
+
+  if (!loggedIn) {
+    return (
+      <div>
+        <h1>Admin Login</h1>
+        <AdminLogin onLogin={() => setLoggedIn(true)} />
+        {error && <div style={{ color: "red" }}>{error}</div>}
+      </div>
+    );
+  }
 
   return (
-    <div style={{ maxWidth: 800, margin: "2rem auto" }}>
-      <h2>Admin Dashboard</h2>
-      <button onClick={handleLogout}>Logout</button>
-      {error && <div style={{ color: "red", marginTop: 12 }}>{error}</div>}
-      <div style={{ marginTop: 24 }}>
-        <pre>{adminData ? JSON.stringify(adminData, null, 2) : "Loading..."}</pre>
-      </div>
+    <div>
+      <h1>Admin Dashboard</h1>
+      {data ? <pre>{JSON.stringify(data, null, 2)}</pre> : <div>Loading...</div>}
+      <button
+        onClick={() => {
+          localStorage.removeItem("token");
+          setLoggedIn(false);
+          setData(null);
+        }}
+      >
+        Logout
+      </button>
     </div>
   );
 }
