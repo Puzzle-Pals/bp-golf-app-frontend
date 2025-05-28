@@ -1,5 +1,4 @@
-import axios from 'axios';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 
 const TOKEN_KEY = "admin_jwt";
@@ -10,31 +9,24 @@ export default function Diagnostic() {
   const router = useRouter();
 
   useEffect(() => {
-    // Redirect to admin login if not authenticated
     const token = typeof window !== "undefined" ? localStorage.getItem(TOKEN_KEY) : null;
     if (!token) {
-      router.replace('/admin/admin'); // or '/admin' if that's your login page
+      router.replace('/admin/admin');
       return;
     }
 
     const fetchData = async () => {
       try {
-        const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-        const response = await axios.get(
-          `${API_BASE_URL}/api/admin/diagnostic`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        setData(response.data);
+        const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
+        const response = await fetch(`${API_BASE_URL}/api/admin/diagnostic`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (!response.ok) throw new Error('Failed to fetch diagnostic data');
+        const data = await response.json();
+        setData(data);
       } catch (err) {
         setError('Failed to fetch diagnostic data, using mock data');
-        console.error('Fetch error:', err.message);
-        // Mock data for testing
         setData({ diagnostics: [] });
-        // Optionally, redirect if unauthorized
-        if (err.response && (err.response.status === 401 || err.response.status === 403)) {
-          localStorage.removeItem(TOKEN_KEY);
-          router.replace('/admin/admin');
-        }
       }
     };
     fetchData();

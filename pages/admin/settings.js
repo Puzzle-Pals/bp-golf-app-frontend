@@ -9,10 +9,9 @@ export default function Settings() {
   const router = useRouter();
 
   useEffect(() => {
-    // Check for JWT and redirect if not authenticated
     const token = typeof window !== "undefined" ? localStorage.getItem(TOKEN_KEY) : null;
     if (!token) {
-      router.replace('/admin/admin'); // or '/admin' if that's your login page
+      router.replace('/admin/admin');
       return;
     }
     fetchSettings(token);
@@ -44,7 +43,7 @@ export default function Settings() {
     try {
       const res = await fetch('/api/admin/settings', {
         method: 'PUT',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
@@ -72,13 +71,7 @@ export default function Settings() {
       </div>
       <h1>Admin Settings</h1>
       <label style={{ display: 'flex', alignItems: 'center', marginTop: '1rem' }}>
-        <input
-          type="checkbox"
-          checked={pointsEnabled}
-          onChange={togglePointsSystem}
-          disabled={loading}
-          style={{ marginRight: '0.5rem' }}
-        />
+        <input type="checkbox" checked={pointsEnabled} onChange={togglePointsSystem} disabled={loading} style={{ marginRight: '0.5rem' }} />
         Enable Points System
       </label>
     </div>

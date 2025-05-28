@@ -9,11 +9,10 @@ export default function Messaging() {
   const [sending, setSending] = useState(false);
   const router = useRouter();
 
-  // Redirect to admin login if not authenticated
   useEffect(() => {
     const token = typeof window !== "undefined" ? localStorage.getItem(TOKEN_KEY) : null;
     if (!token) {
-      router.replace('/admin/admin'); // or '/admin' if that's your login page
+      router.replace('/admin/admin');
     }
   }, [router]);
 
@@ -34,7 +33,7 @@ export default function Messaging() {
     try {
       const res = await fetch('/api/admin/messaging/send', {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
@@ -66,28 +65,16 @@ export default function Messaging() {
       <div style={{ marginBottom: '1rem' }}>
         <label>
           Subject:
-          <input
-            type="text"
-            value={subject}
-            onChange={(e) => setSubject(e.target.value)}
-            style={{ width: '100%', padding: '0.5rem', marginTop: '0.25rem' }}
-          />
+          <input type="text" value={subject} onChange={(e) => setSubject(e.target.value)} style={{ width: '100%', padding: '0.5rem', marginTop: '0.25rem' }} />
         </label>
       </div>
       <div style={{ marginBottom: '1rem' }}>
         <label>
           Message:
-          <textarea
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            rows={6}
-            style={{ width: '100%', padding: '0.5rem', marginTop: '0.25rem' }}
-          />
+          <textarea value={message} onChange={(e) => setMessage(e.target.value)} rows={6} style={{ width: '100%', padding: '0.5rem', marginTop: '0.25rem' }} />
         </label>
       </div>
-      <button onClick={sendMessage} disabled={sending} style={{ padding: '0.5rem 1rem' }}>
-        Send
-      </button>
+      <button onClick={sendMessage} disabled={sending} style={{ padding: '0.5rem 1rem' }}>Send</button>
     </div>
   );
 }

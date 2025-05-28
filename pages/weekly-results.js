@@ -1,14 +1,15 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 
-export default function Home() {
+export default function WeeklyResults() {
   const [news, setNews] = useState({ date: '', details: '' });
   const [error, setError] = useState('');
 
   useEffect(() => {
     const fetchNews = async () => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/news`);
+        // Use relative path for API, not NEXT_PUBLIC_API_URL
+        const res = await fetch('/api/news');
         if (!res.ok) throw new Error('Failed to fetch news');
         const data = await res.json();
         setNews(data.length > 0 ? data[0] : { date: '', details: '' });

@@ -13,10 +13,9 @@ export default function Players() {
   const router = useRouter();
 
   useEffect(() => {
-    // Check for JWT and redirect if not authenticated
     const token = typeof window !== "undefined" ? localStorage.getItem(TOKEN_KEY) : null;
     if (!token) {
-      router.replace('/admin/admin'); // or '/admin' if that's your login page
+      router.replace('/admin/admin');
       return;
     }
     fetchPlayers(token);
@@ -49,7 +48,7 @@ export default function Players() {
     try {
       const res = await fetch('/api/admin/players', {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
@@ -108,39 +107,17 @@ export default function Players() {
       </div>
       <h1>Players</h1>
       <div style={{ marginBottom: '1rem' }}>
-        <input
-          type="text"
-          placeholder="Player Name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          style={{ padding: '0.5rem', width: '45%', marginRight: '1rem' }}
-        />
-        <input
-          type="email"
-          placeholder="Email (optional)"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          style={{ padding: '0.5rem', width: '45%' }}
-        />
+        <input type="text" placeholder="Player Name" value={name} onChange={(e) => setName(e.target.value)} style={{ padding: '0.5rem', width: '45%', marginRight: '1rem' }} />
+        <input type="email" placeholder="Email (optional)" value={email} onChange={(e) => setEmail(e.target.value)} style={{ padding: '0.5rem', width: '45%' }} />
       </div>
-      <button onClick={addPlayer} disabled={loading} style={{ marginRight: '1rem', padding: '0.5rem 1rem' }}>
-        Add Player
-      </button>
-      <input
-        type="file"
-        accept=".csv"
-        onChange={(e) => setCsvFile(e.target.files[0])}
-        style={{ marginRight: '1rem' }}
-      />
-      <button onClick={uploadCsv} disabled={loading || !csvFile} style={{ padding: '0.5rem 1rem' }}>
-        Upload CSV
-      </button>
-
+      <button onClick={addPlayer} disabled={loading} style={{ marginRight: '1rem', padding: '0.5rem 1rem' }}>Add Player</button>
+      <input type="file" accept=".csv" onChange={(e) => setCsvFile(e.target.files[0])} style={{ marginRight: '1rem' }} />
+      <button onClick={uploadCsv} disabled={loading || !csvFile} style={{ padding: '0.5rem 1rem' }}>Upload CSV</button>
       <h2 style={{ marginTop: '2rem' }}>Current Players</h2>
       {error && <p style={{ color: 'red' }}>{error}</p>}
       <ul>
         {players.map((p) => (
-          <li key={p._id || p.id}>
+          <li key={p.id}>
             {p.name} {p.email ? `(${p.email})` : ''}
           </li>
         ))}

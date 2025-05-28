@@ -14,10 +14,9 @@ export default function Events() {
   const router = useRouter();
 
   useEffect(() => {
-    // Check for JWT and redirect if not authenticated
     const token = typeof window !== "undefined" ? localStorage.getItem(TOKEN_KEY) : null;
     if (!token) {
-      router.replace('/admin/admin'); // or '/admin' if that's your login page
+      router.replace('/admin/admin');
       return;
     }
     fetchEvents(token);
@@ -50,7 +49,7 @@ export default function Events() {
     try {
       const res = await fetch('/api/admin/events', {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
@@ -82,45 +81,21 @@ export default function Events() {
       </div>
       <h1>Events</h1>
       <div style={{ marginBottom: '1rem' }}>
-        <input
-          type="text"
-          placeholder="Event Name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          style={{ padding: '0.5rem', width: '100%', marginBottom: '1rem' }}
-        />
-        <select
-          value={course}
-          onChange={(e) => setCourse(e.target.value)}
-          style={{ padding: '0.5rem', width: '100%', marginBottom: '1rem' }}
-        >
+        <input type="text" placeholder="Event Name" value={name} onChange={(e) => setName(e.target.value)} style={{ padding: '0.5rem', width: '100%', marginBottom: '1rem' }} />
+        <select value={course} onChange={(e) => setCourse(e.target.value)} style={{ padding: '0.5rem', width: '100%', marginBottom: '1rem' }}>
           <option>Lake of the Sandhills Golf Course</option>
           <option>Other Course 1</option>
           <option>Other Course 2</option>
         </select>
-        <input
-          type="date"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-          style={{ padding: '0.5rem', width: '100%', marginBottom: '1rem' }}
-        />
-        <textarea
-          placeholder="Event Details"
-          value={details}
-          onChange={(e) => setDetails(e.target.value)}
-          rows={4}
-          style={{ padding: '0.5rem', width: '100%', marginBottom: '1rem' }}
-        />
+        <input type="date" value={date} onChange={(e) => setDate(e.target.value)} style={{ padding: '0.5rem', width: '100%', marginBottom: '1rem' }} />
+        <textarea placeholder="Event Details" value={details} onChange={(e) => setDetails(e.target.value)} rows={4} style={{ padding: '0.5rem', width: '100%', marginBottom: '1rem' }} />
       </div>
-      <button onClick={addEvent} disabled={loading} style={{ padding: '0.5rem 1rem' }}>
-        Add Event
-      </button>
-
+      <button onClick={addEvent} disabled={loading} style={{ padding: '0.5rem 1rem' }}>Add Event</button>
       <h2 style={{ marginTop: '2rem' }}>Upcoming Events</h2>
       {error && <p style={{ color: 'red' }}>{error}</p>}
       <ul>
         {events.map((e) => (
-          <li key={e._id || e.id}>
+          <li key={e.id}>
             <strong>{e.name}</strong> on {new Date(e.date).toLocaleDateString()} at {e.course}
             {e.details && <p>{e.details}</p>}
           </li>

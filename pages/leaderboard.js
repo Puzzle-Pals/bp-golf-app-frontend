@@ -8,7 +8,7 @@ export default function Leaderboard() {
   useEffect(() => {
     const fetchLeaderboard = async () => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/leaderboard`);
+        const res = await fetch('/api/leaderboard');
         if (!res.ok) throw new Error('Failed to fetch leaderboard');
         const data = await res.json();
         setLeaderboard(data);
@@ -21,54 +21,22 @@ export default function Leaderboard() {
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#1B4D3E', color: '#F5E8C7' }}>
-      <nav
-        style={{
-          backgroundColor: '#3C2F2F',
-          padding: '1rem',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
-        }}
-      >
-        <div
-          style={{
-            maxWidth: '1200px',
-            margin: '0 auto',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-          }}
-        >
-          <Link href="/" style={{ color: '#F5E8C7', fontSize: '1.5rem', fontWeight: 'bold', textDecoration: 'none' }}>
-            BP Men’s League
-          </Link>
+      <nav style={{ backgroundColor: '#3C2F2F', padding: '1rem', boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Link href="/" style={{ color: '#F5E8C7', fontSize: '1.5rem', fontWeight: 'bold', textDecoration: 'none' }}>BP Men’s League</Link>
           <div style={{ display: 'flex', gap: '1rem' }}>
-            <Link href="/weekly-results" style={{ color: '#F5E8C7', textDecoration: 'none', cursor: 'pointer' }}>
-              Weekly Results
-            </Link>
-            <Link href="/player-stats" style={{ color: '#F5E8C7', textDecoration: 'none', cursor: 'pointer' }}>
-              Player Stats
-            </Link>
-            <Link href="/leaderboard" style={{ color: '#F5E8C7', textDecoration: 'none', cursor: 'pointer' }}>
-              Leaderboard
-            </Link>
+            <Link href="/weekly-results" style={{ color: '#F5E8C7', textDecoration: 'none' }}>Weekly Results</Link>
+            <Link href="/player-stats" style={{ color: '#F5E8C7', textDecoration: 'none' }}>Player Stats</Link>
+            <Link href="/leaderboard" style={{ color: '#F5E8C7', textDecoration: 'none' }}>Leaderboard</Link>
           </div>
         </div>
       </nav>
-
       <main style={{ maxWidth: '1200px', margin: '0 auto', padding: '3rem 1rem' }}>
-        <h2 style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '1.5rem' }}>
-          Leaderboard
-        </h2>
-
+        <h2 style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '1.5rem' }}>Leaderboard</h2>
         {error ? (
           <p style={{ color: '#C71585' }}>{error}</p>
         ) : (
-          <table
-            style={{
-              width: '100%',
-              borderCollapse: 'collapse',
-              color: '#F5E8C7',
-            }}
-          >
+          <table style={{ width: '100%', borderCollapse: 'collapse', color: '#F5E8C7' }}>
             <thead style={{ backgroundColor: '#3C2F2F' }}>
               <tr>
                 <th style={{ padding: '0.75rem', border: '1px solid #F5E8C7' }}>Rank</th>
@@ -79,9 +47,7 @@ export default function Leaderboard() {
             <tbody>
               {leaderboard.length === 0 ? (
                 <tr>
-                  <td colSpan="3" style={{ padding: '1rem', textAlign: 'center' }}>
-                    No leaderboard data available.
-                  </td>
+                  <td colSpan="3" style={{ padding: '1rem', textAlign: 'center' }}>No leaderboard data available.</td>
                 </tr>
               ) : (
                 leaderboard.map(({ rank, team, points }, idx) => (
