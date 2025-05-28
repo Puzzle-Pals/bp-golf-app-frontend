@@ -1,34 +1,34 @@
-import { useState } from 'react';
-import { useRouter } from 'next/router';
+import { useState } from "react";
+import { useRouter } from "next/router";
 
 export default function AdminLogin() {
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const router = useRouter();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
+    setError("");
     try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ password }),
       });
       const data = await res.json();
       if (res.ok && data.token) {
-        localStorage.setItem('admin_jwt', data.token);
-        router.push('/admin/dashboard');
+        localStorage.setItem("admin_jwt", data.token);
+        router.push("/admin/dashboard");
       } else {
-        setError(data.error || 'Login failed');
+        setError(data.error || "Login failed");
       }
     } catch (err) {
-      setError('Network error');
+      setError("Network error");
     }
   };
 
   return (
-    <div style={{ maxWidth: 400, margin: '2rem auto', padding: 24, border: '1px solid #ddd', borderRadius: 8 }}>
+    <div style={{ maxWidth: 400, margin: "2rem auto", padding: 24, border: "1px solid #ddd", borderRadius: 8 }}>
       <h2>Admin Login</h2>
       <form onSubmit={handleSubmit}>
         <label>
@@ -43,7 +43,7 @@ export default function AdminLogin() {
         <br /><br />
         <button type="submit">Login</button>
       </form>
-      {error && <div style={{ color: 'red', marginTop: 12 }}>{error}</div>}
+      {error && <div style={{ color: "red", marginTop: 12 }}>{error}</div>}
     </div>
   );
 }

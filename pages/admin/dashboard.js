@@ -15,7 +15,7 @@ export default function AdminDashboard() {
     }
     (async () => {
       try {
-        const res = await apiFetch("/api/admin/players");
+        const res = await apiFetch("/api/admin/protected");
         if (res.status === 401) {
           setError("Session expired. Please log in again.");
           localStorage.removeItem("admin_jwt");
