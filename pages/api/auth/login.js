@@ -1,25 +1,44 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
-const ADMIN_PASSWORD_HASH =
-  process.env.ADMIN_PASSWORD_HASH ||
-  "$2a$10$B9kE4e5hF6sK3p7Q8uHhOexuQp/2Gf9rQm6hC9kEoImzP6XkT6T7u";
+const ADMIN_PASSWORD_HASH = "$2a$10$B9kE4e5hF6sK3p7Q8uHhOexuQp/2Gf9rQm6hC9kEoImzP6XkT6T7u"; // for 'admin1029'
+const JWT_SECRET = "mysupersecretjwtkey";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
   const { password } = req.body;
-  if (!password) return res.status(400).json({ error: "Password required" });
 
-  const valid = await bcrypt.compare(password, ADMIN_PASSWORD_HASH);
-  if (!valid) return res.status(401).json({ error: "Invalid password" });
+  // DEBUG LOGGING
+  console.log("=== LOGIN ATTEMPT ===");
+  console.log("Password received:", password);
+
+  if (!password) {
+    console.log("No password provided.");
+    return res.status(400).json({ error: "Password required" });
+  }
+
+  let valid = false;
+  try {
+    valid = await bcrypt.compare(password, ADMIN_PASSWORD_HASH);
+    console.log("bcrypt.compare result:", valid);
+  } catch (err) {
+    console.log("bcrypt.compare error:", err);
+    return res.status(500).json({ error: "Server error" });
+  }
+
+  if (!valid) {
+    console.log("Invalid password.");
+    return res.status(401).json({ error: "Invalid password" });
+  }
 
   const token = jwt.sign(
     { admin: true },
-    process.env.JWT_SECRET || "bpgolfapp",
+    JWT_SECRET,
     { expiresIn: "2h" }
   );
 
+  console.log("Login successful. Token generated.");
   res.status(200).json({ token });
 }
