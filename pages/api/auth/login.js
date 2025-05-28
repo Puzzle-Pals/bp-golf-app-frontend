@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
-const ADMIN_PASSWORD_HASH = "$2a$10$B9kE4e5hF6sK3p7Q8uHhOexuQp/2Gf9rQm6hC9kEoImzP6XkT6T7u"; // for 'admin1029'
+const ADMIN_PASSWORD_HASH = "$2a$10$7r9pA5e.k44a9gM6T1tB6eO1K2DyaqZ3H0qxwZzCPiaw7Y5qX8f36"; // for 'admin1029'
 const JWT_SECRET = "mysupersecretjwtkey";
 
 export default async function handler(req, res) {
