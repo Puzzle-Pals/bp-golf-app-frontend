@@ -15,16 +15,21 @@ export default function AdminDashboard() {
       setChecking(false);
       return;
     }
-    getProtectedAdminData().then((d) => {
+    // Always pass token to your backend with Authorization header!
+    getProtectedAdminData(token).then((d) => {
       if (d && d.success) {
         setLoggedIn(true);
         setChecking(false);
       } else {
-        setError(d.error || "Session expired. Please log in again.");
+        setError(d?.error || "Session expired. Please log in again.");
         removeAdminToken();
         setLoggedIn(false);
         setChecking(false);
       }
+    }).catch(() => {
+      setError("Network error. Please try again.");
+      setChecking(false);
+      setLoggedIn(false);
     });
   }, []);
 
@@ -45,7 +50,7 @@ export default function AdminDashboard() {
 
   // Your actual dashboard UI goes here
   return (
-    <div style={{ maxWidth: 1200, margin: "0 auto", padding: 32 }}>
+    <div style={{ maxWidth: 1200, margin: "0 auto", padding: 32, position: "relative" }}>
       <h1>Admin Dashboard</h1>
       <button
         onClick={() => {
