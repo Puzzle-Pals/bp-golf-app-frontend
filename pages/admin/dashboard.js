@@ -8,13 +8,11 @@ export default function AdminDashboard() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    // Redirect to login if token missing
     const token = typeof window !== "undefined" ? localStorage.getItem("admin_jwt") : null;
     if (!token) {
       router.push("/admin/login");
       return;
     }
-    // Example protected fetch
     (async () => {
       try {
         const res = await apiFetch("/api/admin/players");

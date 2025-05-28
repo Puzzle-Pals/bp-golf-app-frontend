@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useRouter } from 'next/router';
 
 export default function AdminLogin() {
-  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const router = useRouter();
@@ -14,7 +13,7 @@ export default function AdminLogin() {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ password }),
       });
       const data = await res.json();
       if (res.ok && data.token) {
@@ -33,13 +32,13 @@ export default function AdminLogin() {
       <h2>Admin Login</h2>
       <form onSubmit={handleSubmit}>
         <label>
-          Username
-          <input value={username} onChange={e => setUsername(e.target.value)} required />
-        </label>
-        <br /><br />
-        <label>
-          Password
-          <input type="password" value={password} onChange={e => setPassword(e.target.value)} required />
+          Admin Password
+          <input
+            type="password"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            required
+          />
         </label>
         <br /><br />
         <button type="submit">Login</button>

@@ -1,4 +1,3 @@
-// Redirect to dashboard or login depending on auth state
 import { useEffect } from "react";
 import { useRouter } from "next/router";
 
