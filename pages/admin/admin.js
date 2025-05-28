@@ -2,78 +2,139 @@ import axios from 'axios';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 
+// Utility to get/set/remove JWT from localStorage
+const TOKEN_KEY = 'admin_jwt';
+const getToken = () => (typeof window !== "undefined" ? localStorage.getItem(TOKEN_KEY) : null);
+const setToken = (token) => localStorage.setItem(TOKEN_KEY, token);
+const removeToken = () => localStorage.removeItem(TOKEN_KEY);
+
 export default function Admin() {
   const [players, setPlayers] = useState([]);
   const [events, setEvents] = useState([]);
   const [weeklyResults, setWeeklyResults] = useState([]);
   const [scoringSystem, setScoringSystem] = useState([]);
   const [error, setError] = useState(null);
+  const [isAuth, setIsAuth] = useState(!!getToken());
+  const [loading, setLoading] = useState(false);
+  const [loginError, setLoginError] = useState('');
   const router = useRouter();
 
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+
+  // Fetch admin data if authenticated
   useEffect(() => {
+    if (!isAuth) return;
     const fetchData = async () => {
+      setLoading(true);
       try {
-        const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+        const jwt = getToken();
+        const config = { headers: { Authorization: `Bearer ${jwt}` } };
         const [playersResponse, eventsResponse, resultsResponse, scoringResponse] = await Promise.all([
-          axios.get(`${API_BASE_URL}/api/players`),
-          axios.get(`${API_BASE_URL}/api/events`),
-          axios.get(`${API_BASE_URL}/api/weekly_results`),
-          axios.get(`${API_BASE_URL}/api/scoring_system`),
+          axios.get(`${API_BASE_URL}/api/admin/players`, config),
+          axios.get(`${API_BASE_URL}/api/admin/events`, config),
+          axios.get(`${API_BASE_URL}/api/admin/weekly_results`, config),
+          axios.get(`${API_BASE_URL}/api/admin/scoring_system`, config),
         ]);
-        setPlayers(playersResponse.data.players || []);
-        setEvents(eventsResponse.data.events || []);
-        setWeeklyResults(resultsResponse.data.weekly_results || []);
-        setScoringSystem(scoringResponse.data.scoring_system || []);
+        setPlayers(playersResponse.data.players || playersResponse.data || []);
+        setEvents(eventsResponse.data.events || eventsResponse.data || []);
+        setWeeklyResults(resultsResponse.data.weekly_results || resultsResponse.data || []);
+        setScoringSystem(scoringResponse.data.scoring_system || scoringResponse.data || []);
+        setError(null);
       } catch (err) {
-        setError('Failed to fetch admin data, using mock data');
-        console.error('Fetch error:', err.message);
-        // Mock data for testing
-        // setPlayers([
-        //   { id: 1, name: 'Player 1', handicap: 10 },
-        //   { id: 2, name: 'Player 2', handicap: 12 },
-        // ]);
-        // setEvents([
-        //   { id: 1, title: 'Event 1', date: '2025-06-01' },
-        //   { id: 2, title: 'Event 2', date: '2025-06-15' },
-        // ]);
-        // setWeeklyResults([
-        //   { id: 1, player_id: 1, week: 1, score: 72 },
-        //   { id: 2, player_id: 2, week: 1, score: 75 },
-        // ]);
-        // setScoringSystem([
-        //   { id: 1, rule_name: 'Birdie', points: 3 },
-        //   { id: 2, rule_name: 'Par', points: 1 },
-        // ]);
+        setError('Failed to fetch admin data, please re-login.');
+        if (err.response && (err.response.status === 401 || err.response.status === 403)) {
+          handleLogout();
+        }
+        // Optionally: setIsAuth(false);
+      } finally {
+        setLoading(false);
       }
     };
     fetchData();
-  }, []);
+  }, [isAuth]);
 
+  // Login handler
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setLoginError('');
+    const username = e.target.username.value;
+    const password = e.target.password.value;
+    try {
+      const response = await axios.post(`${API_BASE_URL}/api/auth/login`, { username, password });
+      setToken(response.data.token);
+      setIsAuth(true);
+    } catch (err) {
+      setLoginError('Invalid username or password');
+    }
+  };
+
+  const handleLogout = () => {
+    removeToken();
+    setIsAuth(false);
+    setPlayers([]);
+    setEvents([]);
+    setWeeklyResults([]);
+    setScoringSystem([]);
+  };
+
+  // Example: Add Player (must send JWT)
   const handleAddPlayer = async (name, handicap) => {
     try {
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-      await axios.post(`${API_BASE_URL}/api/players`, { name, handicap });
+      const jwt = getToken();
+      await axios.post(
+        `${API_BASE_URL}/api/admin/players`,
+        { name, handicap },
+        { headers: { Authorization: `Bearer ${jwt}` } }
+      );
       router.reload();
     } catch (err) {
       setError('Failed to add player');
-      console.error('Post error:', err.message);
     }
   };
 
+  // Example: Update Scoring System (must send JWT)
   const handleUpdateScoring = async (id, rule_name, points) => {
     try {
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-      await axios.put(`${API_BASE_URL}/api/scoring_system`, { id, rule_name, points });
+      const jwt = getToken();
+      await axios.put(
+        `${API_BASE_URL}/api/admin/scoring_system`,
+        { id, rule_name, points },
+        { headers: { Authorization: `Bearer ${jwt}` } }
+      );
       router.reload();
     } catch (err) {
       setError('Failed to update scoring system');
-      console.error('Put error:', err.message);
     }
   };
 
+  // ----------- RENDER ---------------
+  if (!isAuth) {
+    return (
+      <div>
+        <h1>Admin Login</h1>
+        <form onSubmit={handleLogin}>
+          <label>
+            Username:
+            <input name="username" required autoComplete="username" />
+          </label>
+          <br />
+          <label>
+            Password:
+            <input name="password" type="password" required autoComplete="current-password" />
+          </label>
+          <br />
+          <button type="submit">Login</button>
+        </form>
+        {loginError && <p style={{ color: 'red' }}>{loginError}</p>}
+      </div>
+    );
+  }
+
   return (
     <div>
+      <button style={{ float: 'right' }} onClick={handleLogout}>Logout</button>
       <h1>Admin Panel</h1>
+      {loading ? <p>Loading...</p> : null}
       {error && <p style={{ color: 'red' }}>{error}</p>}
       <h2>Players</h2>
       {players.length > 0 ? (
@@ -115,7 +176,7 @@ export default function Admin() {
       ) : (
         <p>No scoring system available</p>
       )}
-      {/* Add forms for adding players and updating scoring system as needed */}
+      {/* Add forms for adding players and updating scoring system as needed, using handleAddPlayer and handleUpdateScoring */}
     </div>
   );
 }

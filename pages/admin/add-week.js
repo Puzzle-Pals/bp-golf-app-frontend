@@ -1,7 +1,7 @@
-// pages/admin/add-week.js
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
+
+const TOKEN_KEY = "admin_jwt";
 
 export default function AddWeek() {
   const router = useRouter();
@@ -15,14 +15,31 @@ export default function AddWeek() {
   const [prizePayouts, setPrizePayouts] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // Redirect to admin login if not authenticated
+  useEffect(() => {
+    const token = typeof window !== "undefined" ? localStorage.getItem(TOKEN_KEY) : null;
+    if (!token) {
+      router.replace('/admin/admin'); // or '/admin' if that's your login page
+    }
+  }, [router]);
+
   async function saveWeek() {
     if (!weekNumber) return alert('Week Number is required');
     setLoading(true);
+    const token = localStorage.getItem(TOKEN_KEY);
+    if (!token) {
+      setLoading(false);
+      router.replace('/admin/admin');
+      return;
+    }
 
     try {
-      const res = await fetch('/api/weekly-results', {
+      const res = await fetch('/api/admin/weekly-results', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
         body: JSON.stringify({
           weekNumber,
           winners,
@@ -42,8 +59,18 @@ export default function AddWeek() {
     setLoading(false);
   }
 
+  function handleLogout() {
+    localStorage.removeItem(TOKEN_KEY);
+    router.replace('/admin/admin');
+  }
+
   return (
     <div style={{ maxWidth: 600, margin: '2rem auto', padding: '0 1rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
+        <button onClick={handleLogout} style={{ padding: '0.5rem 1rem', background: '#C71585', color: '#fff', border: 'none', borderRadius: '0.25rem' }}>
+          Logout
+        </button>
+      </div>
       <h1>Add Week</h1>
       <div style={{ marginBottom: '1rem' }}>
         <label>

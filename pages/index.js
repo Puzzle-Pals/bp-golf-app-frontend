@@ -1,111 +1,82 @@
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
+const express = require('express');
+const mongoose = require('mongoose');
+const cors = require('cors');
+const app = express();
 
-export default function Home() {
-  const [news, setNews] = useState({ date: '', details: '' });
-  const [error, setError] = useState('');
+app.use(cors({
+    origin: ['http://localhost:3000', 'https://bp-golf-app-frontend.vercel.app'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    credentials: true
+}));
+app.use(express.json());
 
-  useEffect(() => {
-    const fetchNews = async () => {
-      try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/news`);
-        if (!res.ok) throw new Error('Failed to fetch news');
-        const data = await res.json();
-        setNews(data.length > 0 ? data[0] : { date: '', details: '' });
-      } catch {
-        setError('Failed to fetch news');
-      }
-    };
-    fetchNews();
-  }, []);
+mongoose.connect(process.env.MONGODB_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+}).then(() => console.log('MongoDB connected'))
+  .catch(err => console.error('MongoDB connection error:', err));
 
-  return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#1B4D3E' }}>
-      <nav
-        style={{
-          backgroundColor: '#3C2F2F',
-          padding: '1rem',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
-        }}
-      >
-        <div
-          style={{
-            maxWidth: '1200px',
-            margin: '0 auto',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-          }}
-        >
-          <Link
-            href="/"
-            style={{ color: '#F5E8C7', fontSize: '1.5rem', fontWeight: 'bold', textDecoration: 'none' }}
-          >
-            BP Men’s League
-          </Link>
-          <div style={{ display: 'flex', gap: '1rem' }}>
-            <Link
-              href="/weekly-results"
-              style={{ color: '#F5E8C7', textDecoration: 'none', cursor: 'pointer' }}
-            >
-              Weekly Results
-            </Link>
-            <Link
-              href="/player-stats"
-              style={{ color: '#F5E8C7', textDecoration: 'none', cursor: 'pointer' }}
-            >
-              Player Stats
-            </Link>
-            <Link
-              href="/leaderboard"
-              style={{ color: '#F5E8C7', textDecoration: 'none', cursor: 'pointer' }}
-            >
-              Leaderboard
-            </Link>
-          </div>
-        </div>
-      </nav>
+const courseSchema = new mongoose.Schema({
+    name: String,
+    holes: Number
+});
 
-      <main
-        style={{
-          maxWidth: '1200px',
-          margin: '0 auto',
-          padding: '3rem 0',
-          textAlign: 'center',
-          color: '#F5E8C7',
-        }}
-      >
-        <h2 style={{ fontSize: '2.25rem', fontWeight: 'bold', marginBottom: '1rem' }}>
-          Welcome to BP Men’s League
-        </h2>
-        <p style={{ fontSize: '1.125rem', marginBottom: '2rem' }}>
-          Track your scores, stats, and standings in our men's golf league!
-        </p>
+const scoreSchema = new mongoose.Schema({
+    playerName: String,
+    courseId: String,
+    courseName: String,
+    holeScores: [Number],
+    total: Number,
+    date: Date
+});
 
-        <div
-          style={{
-            backgroundColor: '#F5E8C7',
-            padding: '1.5rem',
-            borderRadius: '0.5rem',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-            maxWidth: '600px',
-            margin: '0 auto',
-            color: '#3C2F2F',
-          }}
-        >
-          <h3 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1rem' }}>Latest News</h3>
-          {error ? (
-            <p style={{ color: '#C71585' }}>{error}</p>
-          ) : (
-            <>
-              <p>
-                <strong>Date:</strong> {news.date || 'No date available'}
-              </p>
-              <p>{news.details || 'No news available.'}</p>
-            </>
-          )}
-        </div>
-      </main>
-    </div>
-  );
-}
+const Course = mongoose.model('Course', courseSchema);
+const Score = mongoose.model('Score', scoreSchema);
+
+app.get('/api/courses', async (req, res) => {
+    try {
+        const courses = await Course.find();
+        res.json(courses);
+    } catch (error) {
+        console.error('Error fetching courses:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+app.get('/api/courses/:id', async (req, res) => {
+    try {
+        const course = await Course.findById(req.params.id);
+        if (!course) {
+            return res.status(404).json({ error: 'Course not found' });
+        }
+        res.json(course);
+    } catch (error) {
+        console.error('Error fetching course:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+app.post('/api/scores', async (req, res) => {
+    try {
+        const course = await Course.findById(req.body.courseId);
+        if (!course) {
+            return res.status(404).json({ error: 'Course not found' });
+        }
+        const score = new Score({
+            playerName: req.body.playerName,
+            courseId: req.body.courseId,
+            courseName: course.name,
+            holeScores: req.body.holeScores,
+            total: req.body.total,
+            date: req.body.date
+        });
+        await score.save();
+        res.status(201).json(score);
+    } catch (error) {
+        console.error('Error saving score:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

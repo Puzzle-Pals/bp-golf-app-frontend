@@ -1,12 +1,33 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
 import Link from 'next/link';
 import PlayerManagement from '../../components/PlayerManagement';
 import EventManagement from '../../components/EventManagement';
 import WeeklyResultsManagement from '../../components/WeeklyResultsManagement';
 import News from '../../components/News';
 
+const TOKEN_KEY = "admin_jwt";
+
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('players');
+  const [isAuth, setIsAuth] = useState(false);
+  const router = useRouter();
+
+  useEffect(() => {
+    // Check for JWT token in localStorage
+    const token = typeof window !== "undefined" ? localStorage.getItem(TOKEN_KEY) : null;
+    if (!token) {
+      // Not logged in: redirect to admin login page
+      router.replace('/admin/admin'); // or '/admin' if that's your login path
+    } else {
+      setIsAuth(true);
+    }
+  }, [router]);
+
+  const handleLogout = () => {
+    localStorage.removeItem(TOKEN_KEY);
+    router.replace('/admin/admin'); // or '/admin'
+  };
 
   const tabs = [
     { id: 'players', label: 'Players', component: <PlayerManagement /> },
@@ -15,13 +36,29 @@ export default function AdminDashboard() {
     { id: 'news', label: 'News', component: <News /> },
   ];
 
+  if (!isAuth) return null; // Prevents UI flicker
+
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#1B4D3E', padding: '2rem' }}>
       <nav style={{ backgroundColor: '#3C2F2F', padding: '1rem', boxShadow: '0 2px 4px rgba(0,0,0,0.2)', marginBottom: '2rem' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', justifyContent: 'space-between' }}>
           <Link href="/" style={{ color: '#F5E8C7', fontSize: '1.5rem', fontWeight: 'bold', textDecoration: 'none' }}>
             BP Men’s League
           </Link>
+          <button
+            onClick={handleLogout}
+            style={{
+              backgroundColor: '#C71585',
+              color: '#F5E8C7',
+              border: 'none',
+              borderRadius: '0.25rem',
+              padding: '0.5rem 1rem',
+              fontWeight: 'bold',
+              cursor: 'pointer',
+            }}
+          >
+            Logout
+          </button>
         </div>
       </nav>
       <div style={{ maxWidth: '1200px', margin: '0 auto', backgroundColor: '#F5E8C7', borderRadius: '0.5rem', boxShadow: '0 2px 4px rgba(0,0,0,0.2)', padding: '1.5rem' }}>
