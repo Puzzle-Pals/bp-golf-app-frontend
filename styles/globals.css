@@ -8,6 +8,16 @@ body {
   color: #3C2F2F; /* Brown */
 }
 
+/* Consistent page container styling for all pages */
+.page-container {
+  max-width: 1000px;
+  margin: 32px auto;
+  padding: 32px 24px;
+  background: #fffdfa;
+  border-radius: 16px;
+  box-shadow: 0 2px 16px rgba(60,47,47,0.07), 0 1.5px 8px rgba(60,47,47,0.04);
+}
+
 a {
   color: #1B4D3E; /* Green */
   text-decoration: none;
@@ -24,26 +34,86 @@ button {
   padding: 8px 16px;
   cursor: pointer;
   border-radius: 4px;
+  transition: background 0.2s;
+  font-size: 1rem;
 }
 
 button:hover {
   background-color: #3C2F2F; /* Brown */
 }
 
-.admin-tab {
+.admin-tab,
+.stats-tab,
+.leaderboard-tab {
   background-color: #C71585; /* Pink */
   padding: 20px;
   border-radius: 8px;
   margin-bottom: 20px;
+  color: #fffdfa;
+  box-shadow: 0 1.5px 8px rgba(60,47,47,0.05);
+}
+
+input,
+select,
+textarea {
+  font-size: 1rem;
+  font-family: inherit;
+  border-radius: 4px;
+  border: 1px solid #3C2F2F;
+  padding: 8px;
+  margin: 8px 0 16px 0;
+  background: #fffdfa;
+  color: #3C2F2F;
 }
 
 input[type="date"],
 textarea {
   width: 100%;
-  padding: 8px;
-  margin: 8px 0;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: 2px solid #C71585;
+  border-color: #C71585;
+}
+
+label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+  background: #fffdfa;
+}
+
+th, td {
   border: 1px solid #3C2F2F;
-  border-radius: 4px;
+  padding: 8px 12px;
+  text-align: left;
+}
+
+th {
+  background-color: #1B4D3E;
+  color: #F5E8C7;
+}
+
+tr:nth-child(even) {
+  background-color: #f8eedb;
+}
+
+.stats-header,
+.leaderboard-header,
+.admin-header {
+  color: #1B4D3E;
+  margin-bottom: 16px;
+  font-size: 2rem;
+  letter-spacing: 1px;
+  font-weight: bold;
 }
 
 * {
