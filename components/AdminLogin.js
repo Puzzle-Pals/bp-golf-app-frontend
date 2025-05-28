@@ -26,20 +26,20 @@ export default function AdminLogin({ onLogin }) {
   };
 
   return (
-    <form onSubmit={handleLogin}>
+    <form onSubmit={handleLogin} style={{ display: "flex", flexDirection: "column", gap: 12, maxWidth: 300 }}>
       <input
         type="password"
         value={password}
         onChange={e => setPassword(e.target.value)}
         placeholder="Admin password"
         autoFocus
-        style={{ marginRight: 8 }}
         disabled={loading}
+        style={{ padding: 8, fontSize: 16 }}
       />
-      <button type="submit" disabled={loading || !password}>
+      <button type="submit" disabled={loading || !password} style={{ padding: 8, fontSize: 16 }}>
         {loading ? "Logging in..." : "Login"}
       </button>
-      {error && <div style={{ color: "red", marginTop: 8 }}>{error}</div>}
+      {error && <div style={{ color: "red" }}>{error}</div>}
     </form>
   );
 }

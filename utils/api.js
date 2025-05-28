@@ -26,7 +26,6 @@ export function removeAdminToken() {
   localStorage.removeItem('adminToken');
 }
 
-// Returns { error: ... } if not authorized
 export async function getProtectedAdminData() {
   const token = getAdminToken();
   if (!token) {
