@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useRouter } from "next/router";
 import AdminLogin from "../../components/AdminLogin";
 import EventManagement from "../../components/EventManagement";
 import PlayerManagement from "../../components/PlayerManagement";
@@ -8,6 +9,7 @@ import News from "../../components/News";
 import WeeklyRoundManagement from "../../components/WeeklyRoundManagement";
 import PrizePayouts from "../../components/PrizePayouts";
 import ScoringSystemToggle from "../../components/ScoringSystemToggle";
+import { getAdminToken, removeAdminToken, getProtectedAdminData } from "../../utils/api";
 
 const TABS = [
   { key: "events", label: "Events" },
@@ -21,38 +23,47 @@ const TABS = [
 ];
 
 export default function AdminDashboard() {
+  const router = useRouter();
   const [loggedIn, setLoggedIn] = useState(false);
   const [error, setError] = useState("");
   const [tab, setTab] = useState("events");
+  const [checking, setChecking] = useState(true);
 
-  // Check for token on mount
+  // On mount, check for token and verify it
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    setLoggedIn(!!token);
+    const token = getAdminToken();
+    if (!token) {
+      setLoggedIn(false);
+      setChecking(false);
+      return;
+    }
+    getProtectedAdminData().then((d) => {
+      if (d && !d.error) {
+        setLoggedIn(true);
+        setChecking(false);
+      } else {
+        setError(d.error || "Session expired. Please log in again.");
+        removeAdminToken();
+        setLoggedIn(false);
+        setChecking(false);
+      }
+    });
   }, []);
 
-  // Verify token on login or reload
-  useEffect(() => {
-    if (!loggedIn) return;
-    const token = localStorage.getItem("token");
-    fetch("/api/admin/protected", {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then(r => r.json())
-      .then(d => {
-        if (d.error) {
-          setError(d.error);
-          setLoggedIn(false);
-          localStorage.removeItem("token");
-        }
-      });
-  }, [loggedIn]);
+  if (checking) {
+    return <div>Loading...</div>;
+  }
 
   if (!loggedIn) {
     return (
       <div>
         <h1>Admin Login</h1>
-        <AdminLogin onLogin={() => setLoggedIn(true)} />
+        <AdminLogin
+          onLogin={() => {
+            setLoggedIn(true);
+            setError("");
+          }}
+        />
         {error && <div style={{ color: "red" }}>{error}</div>}
       </div>
     );
@@ -81,8 +92,10 @@ export default function AdminDashboard() {
         ))}
         <button
           onClick={() => {
-            localStorage.removeItem("token");
+            removeAdminToken();
             setLoggedIn(false);
+            setError("");
+            setTab("events");
           }}
           style={{
             float: "right",
