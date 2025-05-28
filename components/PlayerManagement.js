@@ -1,22 +1,29 @@
 import { useState, useEffect } from 'react';
 import Papa from 'papaparse';
 
+const TOKEN_KEY = "admin_jwt";
+
 export default function PlayerManagement() {
   const [players, setPlayers] = useState([]);
   const [newPlayer, setNewPlayer] = useState({ name: '', email: '' });
   const [error, setError] = useState('');
   const [file, setFile] = useState(null);
 
+  // Use relative API paths and include JWT for admin actions
   useEffect(() => {
     fetchPlayers();
   }, []);
 
   const fetchPlayers = async () => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/players`);
+      const res = await fetch('/api/admin/players', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem(TOKEN_KEY)}`,
+        },
+      });
       if (!res.ok) throw new Error('Failed to fetch');
       const data = await res.json();
-      setPlayers(data);
+      setPlayers(data.players || data);
     } catch (err) {
       setError('Failed to fetch players');
     }
@@ -25,9 +32,12 @@ export default function PlayerManagement() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/players`, {
+      const res = await fetch('/api/admin/players', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem(TOKEN_KEY)}`,
+        },
         body: JSON.stringify(newPlayer),
       });
       if (!res.ok) throw new Error('Failed to add player');
@@ -40,8 +50,11 @@ export default function PlayerManagement() {
 
   const handleDelete = async (id) => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/players/${id}`, {
+      const res = await fetch(`/api/admin/players/${id}`, {
         method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem(TOKEN_KEY)}`,
+        },
       });
       if (!res.ok) throw new Error('Failed to delete player');
       fetchPlayers();
@@ -59,8 +72,11 @@ export default function PlayerManagement() {
     const formData = new FormData();
     formData.append('file', file);
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/players/upload`, {
+      const res = await fetch('/api/admin/players/upload', {
         method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem(TOKEN_KEY)}`,
+        },
         body: formData,
       });
       if (!res.ok) throw new Error('Failed to upload');
@@ -73,7 +89,11 @@ export default function PlayerManagement() {
 
   const handleExport = async () => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/players/export`);
+      const res = await fetch('/api/admin/players/export', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem(TOKEN_KEY)}`,
+        },
+      });
       if (!res.ok) throw new Error('Failed to export');
       const text = await res.text();
       const blob = new Blob([text], { type: 'text/csv' });

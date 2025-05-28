@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 
+const TOKEN_KEY = "admin_jwt";
+
 export default function EventManagement() {
   const [events, setEvents] = useState([]);
   const [newEvent, setNewEvent] = useState({ name: '', date: null, details: '' });
@@ -13,10 +15,14 @@ export default function EventManagement() {
 
   const fetchEvents = async () => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/events`);
+      const res = await fetch('/api/admin/events', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem(TOKEN_KEY)}`,
+        },
+      });
       if (!res.ok) throw new Error('Failed to fetch');
       const data = await res.json();
-      setEvents(data);
+      setEvents(data.events || data);
     } catch (err) {
       setError('Failed to fetch events');
     }
@@ -26,9 +32,12 @@ export default function EventManagement() {
     e.preventDefault();
     try {
       const formattedDate = newEvent.date ? newEvent.date.toISOString().split('T')[0] : '';
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/events`, {
+      const res = await fetch('/api/admin/events', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem(TOKEN_KEY)}`,
+        },
         body: JSON.stringify({ ...newEvent, date: formattedDate, course: 'Lake of the Sandhills Golf Course' }),
       });
       if (!res.ok) throw new Error('Failed to add event');
@@ -41,8 +50,11 @@ export default function EventManagement() {
 
   const handleDelete = async (id) => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/events/${id}`, {
+      const res = await fetch(`/api/admin/events/${id}`, {
         method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem(TOKEN_KEY)}`,
+        },
       });
       if (!res.ok) throw new Error('Failed to delete event');
       fetchEvents();

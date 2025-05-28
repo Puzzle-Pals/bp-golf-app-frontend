@@ -18,7 +18,7 @@ export default function AdminDashboard() {
     const token = typeof window !== "undefined" ? localStorage.getItem(TOKEN_KEY) : null;
     if (!token) {
       // Not logged in: redirect to admin login page
-      router.replace('/admin/admin'); // or '/admin' if that's your login path
+      router.replace('/admin/admin');
     } else {
       setIsAuth(true);
     }
@@ -26,7 +26,7 @@ export default function AdminDashboard() {
 
   const handleLogout = () => {
     localStorage.removeItem(TOKEN_KEY);
-    router.replace('/admin/admin'); // or '/admin'
+    router.replace('/admin/admin');
   };
 
   const tabs = [
@@ -74,15 +74,19 @@ export default function AdminDashboard() {
                 backgroundColor: activeTab === tab.id ? '#C71585' : '#3C2F2F',
                 color: '#F5E8C7',
                 transition: 'background-color 0.2s',
+                cursor: 'pointer'
               }}
-              onMouseOver={(e) => { if (activeTab !== tab.id) e.target.style.backgroundColor = '#87CEEB'; e.target.style.color = '#3C2F2F'; }}
-              onMouseOut={(e) => { if (activeTab !== tab.id) e.target.style.backgroundColor = '#3C2F2F'; e.target.style.color = '#F5E8C7'; }}
+              onMouseOver={(e) => { if (activeTab !== tab.id) { e.target.style.backgroundColor = '#87CEEB'; e.target.style.color = '#3C2F2F'; } }}
+              onMouseOut={(e) => { if (activeTab !== tab.id) { e.target.style.backgroundColor = '#3C2F2F'; e.target.style.color = '#F5E8C7'; } }}
+              type="button"
             >
               {tab.label}
             </button>
           ))}
         </div>
-        <div>{tabs.find((tab) => tab.id === activeTab)?.component}</div>
+        <div>
+          {tabs.find((tab) => tab.id === activeTab)?.component}
+        </div>
       </div>
     </div>
   );

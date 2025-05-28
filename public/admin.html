@@ -16,7 +16,7 @@
                 <h3>Add New Course</h3>
             </div>
             <div class="card-body">
-                <form id="courseForm">
+                <form id="courseForm" autocomplete="off">
                     <div class="mb-3">
                         <label for="courseName" class="form-label">Course Name</label>
                         <input type="text" class="form-control" id="courseName" required>
@@ -116,6 +116,83 @@
         </div>
     </div>
 
-    <script src="admin.js"></script>
+    <script>
+    // Use relative path for API
+    const TOKEN_KEY = "admin_jwt";
+    document.addEventListener('DOMContentLoaded', () => {
+        fetchCourses();
+
+        // Add course
+        document.getElementById('courseForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const courseName = document.getElementById('courseName').value.trim();
+            const parInputs = Array.from(document.querySelectorAll('.par-input'));
+            const pars = parInputs.map(inp => parseInt(inp.value, 10));
+            if (pars.length !== 18 || pars.some(isNaN)) {
+                alert('Please enter all 18 hole pars.');
+                return;
+            }
+            try {
+                const token = localStorage.getItem(TOKEN_KEY);
+                const res = await fetch('/api/admin/courses', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                    },
+                    body: JSON.stringify({ name: courseName, pars })
+                });
+                if (!res.ok) throw new Error('Failed to add course');
+                document.getElementById('courseForm').reset();
+                fetchCourses();
+            } catch (err) {
+                alert(err.message);
+            }
+        });
+    });
+
+    async function fetchCourses() {
+        try {
+            const token = localStorage.getItem("admin_jwt");
+            const res = await fetch('/api/admin/courses', {
+                headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+            });
+            if (!res.ok) throw new Error('Failed to fetch courses');
+            const data = await res.json();
+            const courses = Array.isArray(data.courses) ? data.courses : data;
+            const coursesList = document.getElementById('coursesList');
+            coursesList.innerHTML = '';
+            if (!courses.length) {
+                coursesList.innerHTML = "<p>No courses found.</p>";
+                return;
+            }
+            courses.forEach(course => {
+                const div = document.createElement('div');
+                div.className = "mb-2 p-2 border rounded d-flex justify-content-between align-items-center";
+                div.innerHTML = `<span><strong>${course.name}</strong> (Pars: ${course.pars ? course.pars.join(', ') : ''})</span>
+                <button class="btn btn-danger btn-sm" onclick="deleteCourse('${course.id}')">Delete</button>`;
+                coursesList.appendChild(div);
+            });
+        } catch (err) {
+            document.getElementById('coursesList').innerHTML = `<p class="text-danger">${err.message}</p>`;
+        }
+    }
+
+    // Make deleteCourse globally available
+    window.deleteCourse = async function(id) {
+        if (!confirm('Are you sure you want to delete this course?')) return;
+        try {
+            const token = localStorage.getItem("admin_jwt");
+            const res = await fetch(`/api/admin/courses/${id}`, {
+                method: 'DELETE',
+                headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+            });
+            if (!res.ok) throw new Error('Failed to delete course');
+            fetchCourses();
+        } catch (err) {
+            alert(err.message);
+        }
+    }
+    </script>
 </body>
 </html>

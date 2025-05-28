@@ -1,6 +1,6 @@
-import axios from 'axios';
 import { useState, useEffect } from 'react';
-import 'react-datepicker/dist/react-datepicker.css';
+
+const TOKEN_KEY = "admin_jwt";
 
 export default function News() {
   const [news, setNews] = useState([]);
@@ -9,17 +9,16 @@ export default function News() {
   useEffect(() => {
     const fetchNews = async () => {
       try {
-        const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-        const response = await axios.get(`${API_BASE_URL}/api/news`);
-        setNews(response.data.news || []);
+        const res = await fetch('/api/admin/news', {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem(TOKEN_KEY)}`,
+          },
+        });
+        if (!res.ok) throw new Error('Failed to fetch news');
+        const data = await res.json();
+        setNews(data.news || data || []);
       } catch (err) {
-        setError('Failed to fetch news, using mock data');
-        console.error('Fetch error:', err.message);
-        // Mock data for testing
-        // setNews([
-        //   { id: 1, title: 'Mock News 1', content: 'Mock content 1' },
-        //   { id: 2, title: 'Mock News 2', content: 'Mock content 2' },
-        // ]);
+        setError('Failed to fetch news');
       }
     };
     fetchNews();
@@ -32,7 +31,7 @@ export default function News() {
       {news.length > 0 ? (
         <ul>
           {news.map((item, index) => (
-            <li key={index}>{item.title}</li>
+            <li key={item.id || index}>{item.title}</li>
           ))}
         </ul>
       ) : (
