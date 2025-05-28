@@ -14,16 +14,17 @@ export async function adminLogin(password) {
   return res.json();
 }
 
+// Use 'admin_jwt' everywhere for consistency!
 export function storeAdminToken(token) {
-  localStorage.setItem('adminToken', token);
+  localStorage.setItem('admin_jwt', token);
 }
 
 export function getAdminToken() {
-  return localStorage.getItem('adminToken');
+  return localStorage.getItem('admin_jwt');
 }
 
 export function removeAdminToken() {
-  localStorage.removeItem('adminToken');
+  localStorage.removeItem('admin_jwt');
 }
 
 export async function getProtectedAdminData() {
