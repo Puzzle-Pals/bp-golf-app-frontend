@@ -1,52 +1,40 @@
 import { useEffect, useState } from "react";
-import AdminLogin from "../../components/AdminLogin";
+import { useRouter } from "next/router";
 import { getAdminToken, getProtectedAdminData, removeAdminToken } from "../../utils/api";
 
 export default function AdminDashboard() {
+  const router = useRouter();
+  const [checking, setChecking] = useState(true);
   const [loggedIn, setLoggedIn] = useState(false);
   const [error, setError] = useState("");
-  const [checking, setChecking] = useState(true);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     const token = getAdminToken();
     if (!token) {
-      setLoggedIn(false);
-      setChecking(false);
+      router.replace("/admin");
       return;
     }
-    // Always pass token to your backend with Authorization header!
     getProtectedAdminData(token).then((d) => {
       if (d && d.success) {
         setLoggedIn(true);
         setChecking(false);
       } else {
-        setError(d?.error || "Session expired. Please log in again.");
         removeAdminToken();
         setLoggedIn(false);
         setChecking(false);
+        router.replace("/admin");
       }
     }).catch(() => {
       setError("Network error. Please try again.");
-      setChecking(false);
       setLoggedIn(false);
+      setChecking(false);
+      router.replace("/admin");
     });
-  }, []);
+  }, [router]);
 
   if (checking) return <div>Loading...</div>;
-
-  if (!loggedIn) {
-    return (
-      <div style={{ maxWidth: 400, margin: "40px auto" }}>
-        <h1>Admin Login</h1>
-        <AdminLogin onLogin={() => {
-          setLoggedIn(true);
-          setError("");
-        }} />
-        {error && <div style={{ color: "red", marginTop: 8 }}>{error}</div>}
-      </div>
-    );
-  }
+  if (!loggedIn) return null; // Redirecting to /admin
 
   // Your actual dashboard UI goes here
   return (
@@ -55,8 +43,7 @@ export default function AdminDashboard() {
       <button
         onClick={() => {
           removeAdminToken();
-          setLoggedIn(false);
-          setError("");
+          router.replace("/admin");
         }}
         style={{
           background: "#f55",
