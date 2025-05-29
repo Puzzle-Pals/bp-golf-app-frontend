@@ -1,5 +1,8 @@
 import { useState } from "react";
-import { adminLogin, storeAdminToken } from "../utils/api";
+
+// Directly call backend endpoint, don't rely on utils/api.js for admin login!
+const BACKEND_URL = "https://bp-golf-app-backend.vercel.app";
+const TOKEN_KEY = "admin_jwt";
 
 export default function AdminLogin({ onLogin }) {
   const [password, setPassword] = useState("");
@@ -11,13 +14,18 @@ export default function AdminLogin({ onLogin }) {
     setError("");
     setLoading(true);
     try {
-      const res = await adminLogin(password);
-      if (res && res.success && res.token) {
-        storeAdminToken(res.token);
+      const res = await fetch(`${BACKEND_URL}/api/admin/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password }),
+      });
+      const data = await res.json();
+      if (res.ok && data.token) {
+        localStorage.setItem(TOKEN_KEY, data.token);
         setPassword("");
-        if (onLogin) onLogin();
+        if (onLogin) onLogin(data.token);
       } else {
-        setError(res.error || "Invalid password, please try again.");
+        setError(data.error || "Invalid password, please try again.");
       }
     } catch (err) {
       setError("Login failed. Please try again later.");

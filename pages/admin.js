@@ -2,21 +2,49 @@ import React, { useState, useEffect } from "react";
 
 const TOKEN_KEY = "admin_jwt";
 
+// Set this to your deployed backend URL!
+const BACKEND_URL = "https://bp-golf-app-backend.vercel.app";
+
 export default function AdminPage() {
   const [token, setToken] = useState(null);
   const [loginError, setLoginError] = useState("");
-  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [courses, setCourses] = useState([]);
   const [courseName, setCourseName] = useState("");
   const [pars, setPars] = useState(Array(18).fill(""));
+  const [checking, setChecking] = useState(true);
 
-  // Check for token on mount
+  // On mount, check if token exists and is valid
   useEffect(() => {
-    if (typeof window !== "undefined") {
+    async function checkToken() {
+      if (typeof window === "undefined") {
+        setChecking(false);
+        return;
+      }
       const t = localStorage.getItem(TOKEN_KEY);
-      if (t) setToken(t);
+      if (!t) {
+        setChecking(false);
+        setToken(null);
+        return;
+      }
+      try {
+        const res = await fetch(`${BACKEND_URL}/api/admin/protected`, {
+          headers: { Authorization: "Bearer " + t }
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          setToken(t);
+        } else {
+          localStorage.removeItem(TOKEN_KEY);
+          setToken(null);
+        }
+      } catch {
+        localStorage.removeItem(TOKEN_KEY);
+        setToken(null);
+      }
+      setChecking(false);
     }
+    checkToken();
   }, []);
 
   // Fetch courses when authenticated
@@ -24,18 +52,18 @@ export default function AdminPage() {
     if (token) fetchCourses();
   }, [token]);
 
-  // Login handler
+  // Login handler (PASSWORD ONLY, no username)
   async function handleLogin(e) {
     e.preventDefault();
     setLoginError("");
     try {
-      const res = await fetch("/api/auth/login", {
+      const res = await fetch(`${BACKEND_URL}/api/admin/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ password }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Login failed");
+      if (!res.ok || !data.token) throw new Error(data.error || "Login failed");
       localStorage.setItem(TOKEN_KEY, data.token);
       setToken(data.token);
       setPassword("");
@@ -59,7 +87,7 @@ export default function AdminPage() {
       return;
     }
     try {
-      const res = await fetch("/api/admin/courses", {
+      const res = await fetch(`${BACKEND_URL}/api/admin/courses`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -79,7 +107,7 @@ export default function AdminPage() {
   // Fetch courses
   async function fetchCourses() {
     try {
-      const res = await fetch("/api/admin/courses", {
+      const res = await fetch(`${BACKEND_URL}/api/admin/courses`, {
         headers: {
           Authorization: "Bearer " + token,
         },
@@ -99,7 +127,7 @@ export default function AdminPage() {
   async function deleteCourse(id) {
     if (!window.confirm("Are you sure you want to delete this course?")) return;
     try {
-      const res = await fetch(`/api/admin/courses/${id}`, {
+      const res = await fetch(`${BACKEND_URL}/api/admin/courses/${id}`, {
         method: "DELETE",
         headers: {
           Authorization: "Bearer " + token,
@@ -111,6 +139,8 @@ export default function AdminPage() {
       alert(err.message);
     }
   }
+
+  if (checking) return <div className="container mt-4">Loading...</div>;
 
   // Authenticated admin UI
   if (token) {
@@ -200,7 +230,7 @@ export default function AdminPage() {
     );
   }
 
-  // Login form
+  // Login form (PASSWORD ONLY)
   return (
     <div className="container mt-4">
       <h1 className="text-center mb-4">Admin Panel</h1>
@@ -213,16 +243,6 @@ export default function AdminPage() {
         </div>
         <div className="card-body">
           <form onSubmit={handleLogin}>
-            <div className="mb-3">
-              <label className="form-label">Username</label>
-              <input
-                type="text"
-                className="form-control"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                required
-              />
-            </div>
             <div className="mb-3">
               <label className="form-label">Password</label>
               <input
