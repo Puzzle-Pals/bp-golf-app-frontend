@@ -1,6 +1,5 @@
 import { useState } from "react";
 
-// Directly call backend endpoint, don't rely on utils/api.js for admin login!
 const BACKEND_URL = "https://bp-golf-app-backend.vercel.app";
 const TOKEN_KEY = "admin_jwt";
 
@@ -34,20 +33,54 @@ export default function AdminLogin({ onLogin }) {
   };
 
   return (
-    <form onSubmit={handleLogin} style={{ display: "flex", flexDirection: "column", gap: 12, maxWidth: 300 }}>
-      <input
-        type="password"
-        value={password}
-        onChange={e => setPassword(e.target.value)}
-        placeholder="Admin password"
-        autoFocus
-        disabled={loading}
-        style={{ padding: 8, fontSize: 16 }}
-      />
-      <button type="submit" disabled={loading || !password} style={{ padding: 8, fontSize: 16 }}>
-        {loading ? "Logging in..." : "Login"}
-      </button>
-      {error && <div style={{ color: "red" }}>{error}</div>}
-    </form>
+    <div style={{
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      minHeight: "60vh"
+    }}>
+      <form
+        onSubmit={handleLogin}
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 16,
+          maxWidth: 320,
+          width: "100%",
+          background: "#f9f9f9",
+          borderRadius: 8,
+          boxShadow: "0 2px 16px rgba(0,0,0,0.07)",
+          padding: 32
+        }}
+      >
+        <h2 style={{ textAlign: "center", margin: 0 }}>Admin Login</h2>
+        <input
+          type="password"
+          value={password}
+          onChange={e => setPassword(e.target.value)}
+          placeholder="Admin password"
+          autoFocus
+          disabled={loading}
+          style={{ padding: 10, fontSize: 16, borderRadius: 4, border: "1px solid #ccc" }}
+        />
+        <button
+          type="submit"
+          disabled={loading || !password}
+          style={{
+            padding: 10,
+            fontSize: 16,
+            borderRadius: 4,
+            background: "#1B4D3E",
+            color: "#fff",
+            border: "none",
+            fontWeight: 600,
+            cursor: loading ? "not-allowed" : "pointer"
+          }}
+        >
+          {loading ? "Logging in..." : "Login"}
+        </button>
+        {error && <div style={{ color: "red", textAlign: "center" }}>{error}</div>}
+      </form>
+    </div>
   );
 }
