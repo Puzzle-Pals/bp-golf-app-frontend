@@ -1,49 +1,50 @@
-import React, { useState } from 'react';
-import { adminApi } from '../utils/api';
+import { useState } from 'react';
 
 export default function Messaging() {
-  const [recipients, setRecipients] = useState('');
-  const [subject, setSubject] = useState('');
   const [message, setMessage] = useState('');
-  const [status, setStatus] = useState('');
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
-  const handleSend = async e => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setStatus('Sending...');
+    setError('');
+    setSuccess('');
     try {
-      await adminApi('sendMessage', {
-        recipientEmails: recipients.split(',').map(e => e.trim()),
-        subject,
-        message
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/messaging`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message }),
       });
-      setStatus('Message sent!');
-      setRecipients('');
-      setSubject('');
+      if (!res.ok) throw new Error('Failed to send message');
       setMessage('');
+      setSuccess('Message sent!');
     } catch (err) {
-      setStatus('Failed: ' + err.message);
+      setError(err.message);
     }
   };
 
   return (
-    <div className="mb-4">
-      <h3>Messaging</h3>
-      <form onSubmit={handleSend}>
-        <div className="mb-2">
-          <label>Recipients (comma separated):</label>
-          <input className="form-control" value={recipients} onChange={e => setRecipients(e.target.value)} required />
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+      <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#3C2F2F' }}>Send Message</h2>
+      {error && <p style={{ color: '#C71585' }}>{error}</p>}
+      {success && <p style={{ color: '#1B4D3E' }}>{success}</p>}
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <div>
+          <label style={{ display: 'block', color: '#3C2F2F' }}>Message (will be emailed to all players)</label>
+          <textarea
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            style={{ width: '100%', padding: '0.5rem', border: '1px solid #3C2F2F', borderRadius: '0.25rem', minHeight: '100px' }}
+            required
+          />
         </div>
-        <div className="mb-2">
-          <label>Subject:</label>
-          <input className="form-control" value={subject} onChange={e => setSubject(e.target.value)} required />
-        </div>
-        <div className="mb-2">
-          <label>Message:</label>
-          <textarea className="form-control" value={message} onChange={e => setMessage(e.target.value)} required />
-        </div>
-        <button className="btn btn-primary" type="submit">Send</button>
+        <button
+          type="submit"
+          style={{ backgroundColor: '#C71585', color: '#F5E8C7', padding: '0.5rem 1rem', borderRadius: '0.25rem', transition: 'background-color 0.2s, color 0.2s' }}
+        >
+          Send Message
+        </button>
       </form>
-      <div>{status}</div>
     </div>
   );
 }

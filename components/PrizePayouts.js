@@ -1,115 +1,42 @@
-import React, { useEffect, useState } from 'react';
-import { adminApi } from '../utils/api';
+import { useState, useEffect } from 'react';
 
 export default function PrizePayouts() {
-  const [payouts, setPayouts] = useState([]);
-  const [form, setForm] = useState({
-    weekly_result_id: '',
-    total_prize_pool: '',
-    winners_amount: '',
-    second_place_amount: '',
-    deuce_pot_amount: '',
-    closest_to_pin_amount: '',
-    highest_score_amount: ''
-  });
-  const [editing, setEditing] = useState(null);
+  const [payouts, setPayouts] = useState({});
   const [error, setError] = useState('');
-  const [results, setResults] = useState([]);
 
   useEffect(() => {
     fetchPayouts();
-    fetchResults();
+    // eslint-disable-next-line
   }, []);
 
-  async function fetchPayouts() {
+  const fetchPayouts = async () => {
     try {
-      const data = await adminApi('getPrizePayouts');
-      setPayouts(data);
       setError('');
-    } catch (err) { setError(err.message); }
-  }
-  async function fetchResults() {
-    try { setResults(await adminApi('getWeeklyResults')); } catch {}
-  }
-
-  async function handleAddOrUpdate(e) {
-    e.preventDefault();
-    try {
-      if (editing) {
-        await adminApi('updatePrizePayout', { ...form, id: editing });
-      } else {
-        await adminApi('addPrizePayout', form);
-      }
-      setForm({
-        weekly_result_id: '',
-        total_prize_pool: '',
-        winners_amount: '',
-        second_place_amount: '',
-        deuce_pot_amount: '',
-        closest_to_pin_amount: '',
-        highest_score_amount: ''
-      });
-      setEditing(null);
-      fetchPayouts();
-    } catch (err) { setError(err.message); }
-  }
-
-  function handleEdit(payout) {
-    setForm({
-      weekly_result_id: payout.weekly_result_id,
-      total_prize_pool: payout.total_prize_pool,
-      winners_amount: payout.winners_amount,
-      second_place_amount: payout.second_place_amount,
-      deuce_pot_amount: payout.deuce_pot_amount,
-      closest_to_pin_amount: payout.closest_to_pin_amount,
-      highest_score_amount: payout.highest_score_amount
-    });
-    setEditing(payout.id);
-  }
-
-  async function handleDelete(id) {
-    if (!window.confirm('Delete this payout?')) return;
-    try {
-      await adminApi('deletePrizePayout', { id });
-      fetchPayouts();
-    } catch (err) { setError(err.message); }
-  }
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/prize_payouts`);
+      if (!res.ok) throw new Error('Failed to fetch payouts');
+      const data = await res.json();
+      setPayouts(data);
+    } catch (err) {
+      setError('Failed to fetch prize payouts');
+    }
+  };
 
   return (
-    <div className="mb-4">
-      <h3>Prize Payout Management</h3>
-      <form onSubmit={handleAddOrUpdate} className="mb-3">
-        <select value={form.weekly_result_id} onChange={e => setForm(f => ({ ...f, weekly_result_id: e.target.value }))} required className="me-2">
-          <option value="">Select Weekly Result</option>
-          {results.map(r => <option key={r.id} value={r.id}>Result {r.id}</option>)}
-        </select>
-        <input placeholder="Total Pool" type="number" value={form.total_prize_pool} onChange={e => setForm(f => ({ ...f, total_prize_pool: e.target.value }))} required className="me-2" />
-        <input placeholder="Winners Amount" type="number" value={form.winners_amount} onChange={e => setForm(f => ({ ...f, winners_amount: e.target.value }))} className="me-2" />
-        <input placeholder="Second Place Amount" type="number" value={form.second_place_amount} onChange={e => setForm(f => ({ ...f, second_place_amount: e.target.value }))} className="me-2" />
-        <input placeholder="Deuce Pot Amount" type="number" value={form.deuce_pot_amount} onChange={e => setForm(f => ({ ...f, deuce_pot_amount: e.target.value }))} className="me-2" />
-        <input placeholder="Closest to Pin Amount" type="number" value={form.closest_to_pin_amount} onChange={e => setForm(f => ({ ...f, closest_to_pin_amount: e.target.value }))} className="me-2" />
-        <input placeholder="Highest Score Amount" type="number" value={form.highest_score_amount} onChange={e => setForm(f => ({ ...f, highest_score_amount: e.target.value }))} className="me-2" />
-        <button type="submit" className="btn btn-primary btn-sm me-2">{editing ? 'Update' : 'Add'} Payout</button>
-        {editing && <button type="button" className="btn btn-secondary btn-sm" onClick={() => { setEditing(null); setForm({
-          weekly_result_id: '',
-          total_prize_pool: '',
-          winners_amount: '',
-          second_place_amount: '',
-          deuce_pot_amount: '',
-          closest_to_pin_amount: '',
-          highest_score_amount: ''
-        }); }}>Cancel</button>}
-      </form>
-      {error && <div className="text-danger mb-2">{error}</div>}
-      <ul>
-        {payouts.map(payout => (
-          <li key={payout.id}>
-            Result: {payout.weekly_result_id}, Total: {payout.total_prize_pool}
-            <button className="btn btn-link btn-sm" onClick={() => handleEdit(payout)}>Edit</button>
-            <button className="btn btn-link btn-sm text-danger" onClick={() => handleDelete(payout.id)}>Delete</button>
-          </li>
-        ))}
-      </ul>
+    <div style={{ margin: '2rem 0' }}>
+      <h3 style={{ color: '#3C2F2F', fontWeight: 'bold', marginBottom: '1rem' }}>Prize Payouts</h3>
+      {error && <p style={{ color: '#C71585' }}>{error}</p>}
+      {payouts.total ? (
+        <div style={{ background: '#F5E8C7', padding: '1rem', borderRadius: '0.25rem', color: '#3C2F2F' }}>
+          <p><strong>Total:</strong> ${payouts.total}</p>
+          <p><strong>Winners (30%):</strong> ${payouts.winners?.amount} {payouts.winners?.players && `to Players ${payouts.winners.players.join(', ')}`}</p>
+          <p><strong>2nd Place (20%):</strong> ${payouts.secondPlace?.amount} {payouts.secondPlace?.players && `to Players ${payouts.secondPlace.players.join(', ')}`}</p>
+          <p><strong>Deuce Pot (20%):</strong> ${payouts.deucePot?.amount} {payouts.deucePot?.players && `to Players ${payouts.deucePot.players.join(', ')}`}</p>
+          <p><strong>Closest to Pin (20%):</strong> ${payouts.closestToPin?.amount} {payouts.closestToPin?.players && `to Player ${payouts.closestToPin.players[0]}`}</p>
+          <p><strong>Highest Score (10%):</strong> ${payouts.highestScore?.amount} {payouts.highestScore?.players && `to Player ${payouts.highestScore.players[0]}`}</p>
+        </div>
+      ) : (
+        <p>No payout data available.</p>
+      )}
     </div>
   );
 }

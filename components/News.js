@@ -1,42 +1,105 @@
 import { useState, useEffect } from 'react';
-import { adminApi } from '../utils/api';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 
 export default function News() {
   const [news, setNews] = useState([]);
-  const [error, setError] = useState(null);
+  const [newNews, setNewNews] = useState({ date: null, details: '' });
+  const [error, setError] = useState('');
 
   useEffect(() => { fetchNews(); }, []);
-  async function fetchNews() {
+
+  const fetchNews = async () => {
     try {
-      const data = await adminApi('getNews');
-      setNews(Array.isArray(data) ? data : data.news || []);
-      setError(null);
+      setError('');
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/news`);
+      if (!res.ok) throw new Error('Failed to fetch');
+      const data = await res.json();
+      setNews(data);
     } catch (err) {
       setError('Failed to fetch news');
     }
-  }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      setError('');
+      const formattedDate = newNews.date ? newNews.date.toISOString().split('T')[0] : '';
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/news`, {
+        method: 'POST',
+        headers: { 'Content-Type': ' 'application/json' },
+        body: JSON.stringify({ date: formattedDate, details: newNews.details }),
+      });
+      if (!res.ok) throw new Error('Failed to add news');
+      setNewNews({ date: null, details: '' });
+      fetchNews();
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Delete this news item?')) return;
+    try {
+      setError('');
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/news/${id}`, {
+        method: 'DELETE',
+      });
+      if (!res.ok) throw new Error('Failed to delete news');
+      fetchNews();
+    } catch (err) {
+      setError(err.message);
+    }
+  };
 
   return (
-    <div>
-      <h1>News</h1>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      {news.length > 0 ? (
-        <ul>
-          {news.map((item, index) => (
-            <li key={item.id || index}>
-              <strong>{item.title || item.headline || "Untitled"}</strong>
-              {item.date && (
-                <span style={{ marginLeft: 8, color: "#666", fontSize: "0.9em" }}>
-                  ({new Date(item.date).toLocaleDateString()})
-                </span>
-              )}
-              {item.details && <div>{item.details}</div>}
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p>No news available</p>
-      )}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+      <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#3C2F2F' }}>Manage News</h2>
+      {error && <p style={{ color: '#C71585' }}>{error}</p>}
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <div>
+          <label style={{ display: 'block', color: '#3C2F2F' }}>Date</label>
+          <DatePicker
+            selected={newNews.date}
+            onChange={(date) => setNewNews({ ...newNews, date })}
+            wrapperClassName="datePicker"
+            popperPlacement="auto"
+            required
+          />
+        </div>
+        <div>
+          <label style={{ display: 'block', color: '#3C2F2F' }}>Details</label>
+          <textarea
+            value={newNews.details}
+            onChange={(e) => setNewNews({ ...newNews, details: e.target.value })}
+            style={{ width: '100%', padding: '0.5rem', border: '1px solid #3C2F2F', borderRadius: '0.25rem', minHeight: '100px' }}
+            required
+          />
+        </div>
+        <button
+          type="submit"
+          style={{ backgroundColor: '#C71585', color: '#F5E8C7', padding: '0.5rem 1rem', borderRadius: '0.25rem', transition: 'background-color 0.2s, color 0.2s' }}
+        >
+          Submit News
+        </button>
+      </form>
+      <div>
+        <h3 style={{ fontSize: '1.25rem', fontWeight: '600', color: '#3C2F2F', marginBottom: '1rem' }}>Existing News</h3>
+        {news.map((item) => (
+          <div key={item.id || item.details + item.date} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#F5E8C7', padding: '1rem', borderRadius: '0.25rem', marginBottom: '0.5rem' }}>
+            <span style={{ color: '#3C2F2F' }}>
+              {item.date}: {item.details}
+            </span>
+            <button
+              onClick={() => handleDelete(item.id)}
+              style={{ backgroundColor: '#C71585', color: '#F5E8C7', padding: '0.25rem 0.5rem', borderRadius: '0.25rem', transition: 'background-color 0.2s, color 0.2s' }}
+            >
+              Delete
+            </button>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

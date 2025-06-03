@@ -1,68 +1,115 @@
-import React, { useEffect, useState } from 'react';
-import { adminApi } from '../utils/api';
+import { useState, useEffect } from 'react';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 
 export default function EventManagement() {
   const [events, setEvents] = useState([]);
-  const [form, setForm] = useState({ date: '', course: '' });
-  const [editing, setEditing] = useState(null);
+  const [newEvent, setNewEvent] = useState({ name: '', date: null, details: '' });
   const [error, setError] = useState('');
 
   useEffect(() => { fetchEvents(); }, []);
 
-  async function fetchEvents() {
+  const fetchEvents = async () => {
     try {
-      const data = await adminApi('getEvents');
-      setEvents(data);
       setError('');
-    } catch (err) { setError(err.message); }
-  }
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/events`);
+      if (!res.ok) throw new Error('Failed to fetch');
+      const data = await res.json();
+      setEvents(data);
+    } catch (err) {
+      setError('Failed to fetch events');
+    }
+  };
 
-  async function handleAddOrUpdate(e) {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      if (editing) {
-        await adminApi('updateEvent', { ...form, id: editing });
-      } else {
-        await adminApi('addEvent', form);
-      }
-      setForm({ date: '', course: '' });
-      setEditing(null);
+      setError('');
+      const formattedDate = newEvent.date ? newEvent.date.toISOString().split('T')[0] : '';
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/events`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...newEvent, date: formattedDate, course: 'Lake of the Sandhills Golf Course' }),
+      });
+      if (!res.ok) throw new Error('Failed to add event');
+      setNewEvent({ name: '', date: null, details: '' });
       fetchEvents();
-    } catch (err) { setError(err.message); }
-  }
+    } catch (err) {
+      setError(err.message);
+    }
+  };
 
-  function handleEdit(event) {
-    setForm({ date: event.date, course: event.course });
-    setEditing(event.id);
-  }
-
-  async function handleDelete(id) {
+  const handleDelete = async (id) => {
     if (!window.confirm('Delete this event?')) return;
     try {
-      await adminApi('deleteEvent', { id });
+      setError('');
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/events/${id}`, {
+        method: 'DELETE',
+      });
+      if (!res.ok) throw new Error('Failed to delete event');
       fetchEvents();
-    } catch (err) { setError(err.message); }
-  }
+    } catch (err) {
+      setError(err.message);
+    }
+  };
 
   return (
-    <div className="mb-4">
-      <h3>Event Management</h3>
-      <form onSubmit={handleAddOrUpdate} className="mb-3">
-        <input type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} required className="me-2" />
-        <input placeholder="Course" value={form.course} onChange={e => setForm(f => ({ ...f, course: e.target.value }))} required className="me-2" />
-        <button type="submit" className="btn btn-primary btn-sm me-2">{editing ? 'Update' : 'Add'} Event</button>
-        {editing && <button type="button" className="btn btn-secondary btn-sm" onClick={() => { setEditing(null); setForm({ date: '', course: '' }); }}>Cancel</button>}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+      <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#3C2F2F' }}>Manage Events</h2>
+      {error && <p style={{ color: '#C71585' }}>{error}</p>}
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <div>
+          <label style={{ display: 'block', color: '#3C2F2F' }}>Name</label>
+          <input
+            type="text"
+            value={newEvent.name}
+            onChange={(e) => setNewEvent({ ...newEvent, name: e.target.value })}
+            style={{ width: '100%', padding: '0.5rem', border: '1px solid #3C2F2F', borderRadius: '0.25rem' }}
+            required
+          />
+        </div>
+        <div>
+          <label style={{ display: 'block', color: '#3C2F2F' }}>Date</label>
+          <DatePicker
+            selected={newEvent.date}
+            onChange={(date) => setNewEvent({ ...newEvent, date })}
+            wrapperClassName="datePicker"
+            popperPlacement="auto"
+            required
+          />
+        </div>
+        <div>
+          <label style={{ display: 'block', color: '#3C2F2F' }}>Details</label>
+          <textarea
+            value={newEvent.details}
+            onChange={(e) => setNewEvent({ ...newEvent, details: e.target.value })}
+            style={{ width: '100%', padding: '0.5rem', border: '1px solid #3C2F2F', borderRadius: '0.25rem', minHeight: '100px' }}
+            required
+          />
+        </div>
+        <button
+          type="submit"
+          style={{ backgroundColor: '#C71585', color: '#F5E8C7', padding: '0.5rem 1rem', borderRadius: '0.25rem', transition: 'background-color 0.2s, color 0.2s' }}
+        >
+          Add Event
+        </button>
       </form>
-      {error && <div className="text-danger mb-2">{error}</div>}
-      <ul>
-        {events.map(ev => (
-          <li key={ev.id}>
-            {ev.date} – {ev.course}
-            <button className="btn btn-link btn-sm" onClick={() => handleEdit(ev)}>Edit</button>
-            <button className="btn btn-link btn-sm text-danger" onClick={() => handleDelete(ev.id)}>Delete</button>
-          </li>
+      <div>
+        <h3 style={{ fontSize: '1.25rem', fontWeight: '600', color: '#3C2F2F', marginBottom: '1rem' }}>Existing Events</h3>
+        {events.map((event) => (
+          <div key={event.id || event.name + event.date} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#F5E8C7', padding: '1rem', borderRadius: '0.25rem', marginBottom: '0.5rem' }}>
+            <span style={{ color: '#3C2F2F' }}>
+              {event.name} ({event.date}, {event.course}, {event.details})
+            </span>
+            <button
+              onClick={() => handleDelete(event.id)}
+              style={{ backgroundColor: '#C71585', color: '#F5E8C7', padding: '0.25rem 0.5rem', borderRadius: '0.25rem', transition: 'background-color 0.2s, color 0.2s' }}
+            >
+              Delete
+            </button>
+          </div>
         ))}
-      </ul>
+      </div>
     </div>
   );
 }
