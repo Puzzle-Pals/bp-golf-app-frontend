@@ -14,9 +14,9 @@
     "cors": "^2.8.5",
     "jsonwebtoken": "^9.0.2",
     "next": "15.3.2",
-    "papaparse": "^5.4.1",
+    "papaparse": "^5.5.3",
     "react": "^19.0.0-rc-02c0e824-20241028",
-    "react-datepicker": "^7.4.0",
+    "react-datepicker": "^7.6.0",
     "react-dom": "^19.0.0-rc-02c0e824-20241028",
     "react-router-dom": "^7.6.0"
   }
