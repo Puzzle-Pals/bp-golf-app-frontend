@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { sendAdminMessage } from '../utils/api';
+import { adminApi } from '../utils/api';
 
 export default function Messaging() {
   const [recipients, setRecipients] = useState('');
@@ -11,8 +11,8 @@ export default function Messaging() {
     e.preventDefault();
     setStatus('Sending...');
     try {
-      await sendAdminMessage({
-        recipientEmails: recipients,
+      await adminApi('sendMessage', {
+        recipientEmails: recipients.split(',').map(e => e.trim()),
         subject,
         message
       });
@@ -31,30 +31,15 @@ export default function Messaging() {
       <form onSubmit={handleSend}>
         <div className="mb-2">
           <label>Recipients (comma separated):</label>
-          <input
-            className="form-control"
-            value={recipients}
-            onChange={e => setRecipients(e.target.value)}
-            required
-          />
+          <input className="form-control" value={recipients} onChange={e => setRecipients(e.target.value)} required />
         </div>
         <div className="mb-2">
           <label>Subject:</label>
-          <input
-            className="form-control"
-            value={subject}
-            onChange={e => setSubject(e.target.value)}
-            required
-          />
+          <input className="form-control" value={subject} onChange={e => setSubject(e.target.value)} required />
         </div>
         <div className="mb-2">
           <label>Message:</label>
-          <textarea
-            className="form-control"
-            value={message}
-            onChange={e => setMessage(e.target.value)}
-            required
-          />
+          <textarea className="form-control" value={message} onChange={e => setMessage(e.target.value)} required />
         </div>
         <button className="btn btn-primary" type="submit">Send</button>
       </form>

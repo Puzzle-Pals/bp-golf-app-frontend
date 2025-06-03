@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import {
-  apiFetch
-} from '../utils/api';
+import { adminApi } from '../utils/api';
 
 export default function EventManagement() {
   const [events, setEvents] = useState([]);
@@ -9,41 +7,28 @@ export default function EventManagement() {
   const [editing, setEditing] = useState(null);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    fetchEvents();
-  }, []);
+  useEffect(() => { fetchEvents(); }, []);
 
   async function fetchEvents() {
     try {
-      setEvents(await apiFetch('/events', { admin: true }));
+      const data = await adminApi('getEvents');
+      setEvents(data);
       setError('');
-    } catch (err) {
-      setError(err.message);
-    }
+    } catch (err) { setError(err.message); }
   }
 
   async function handleAddOrUpdate(e) {
     e.preventDefault();
     try {
       if (editing) {
-        await apiFetch('/events', {
-          method: 'PUT',
-          data: { ...form, id: editing },
-          admin: true,
-        });
+        await adminApi('updateEvent', { ...form, id: editing });
       } else {
-        await apiFetch('/events', {
-          method: 'POST',
-          data: form,
-          admin: true,
-        });
+        await adminApi('addEvent', form);
       }
       setForm({ date: '', course: '' });
       setEditing(null);
       fetchEvents();
-    } catch (err) {
-      setError(err.message);
-    }
+    } catch (err) { setError(err.message); }
   }
 
   function handleEdit(event) {
@@ -54,55 +39,27 @@ export default function EventManagement() {
   async function handleDelete(id) {
     if (!window.confirm('Delete this event?')) return;
     try {
-      await apiFetch(`/events?id=${id}`, { method: 'DELETE', admin: true });
+      await adminApi('deleteEvent', { id });
       fetchEvents();
-    } catch (err) {
-      setError(err.message);
-    }
+    } catch (err) { setError(err.message); }
   }
 
   return (
     <div className="mb-4">
       <h3>Event Management</h3>
       <form onSubmit={handleAddOrUpdate} className="mb-3">
-        <input
-          type="date"
-          value={form.date}
-          onChange={e => setForm(f => ({ ...f, date: e.target.value }))}
-          required
-          className="me-2"
-        />
-        <input
-          placeholder="Course"
-          value={form.course}
-          onChange={e => setForm(f => ({ ...f, course: e.target.value }))}
-          required
-          className="me-2"
-        />
-        <button type="submit" className="btn btn-primary btn-sm me-2">
-          {editing ? 'Update' : 'Add'} Event
-        </button>
-        {editing && (
-          <button
-            type="button"
-            className="btn btn-secondary btn-sm"
-            onClick={() => { setEditing(null); setForm({ date: '', course: '' }); }}
-          >
-            Cancel
-          </button>
-        )}
+        <input type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} required className="me-2" />
+        <input placeholder="Course" value={form.course} onChange={e => setForm(f => ({ ...f, course: e.target.value }))} required className="me-2" />
+        <button type="submit" className="btn btn-primary btn-sm me-2">{editing ? 'Update' : 'Add'} Event</button>
+        {editing && <button type="button" className="btn btn-secondary btn-sm" onClick={() => { setEditing(null); setForm({ date: '', course: '' }); }}>Cancel</button>}
       </form>
       {error && <div className="text-danger mb-2">{error}</div>}
       <ul>
         {events.map(ev => (
           <li key={ev.id}>
-            {ev.date} – {ev.course}{' '}
-            <button className="btn btn-link btn-sm" onClick={() => handleEdit(ev)}>
-              Edit
-            </button>
-            <button className="btn btn-link btn-sm text-danger" onClick={() => handleDelete(ev.id)}>
-              Delete
-            </button>
+            {ev.date} – {ev.course}
+            <button className="btn btn-link btn-sm" onClick={() => handleEdit(ev)}>Edit</button>
+            <button className="btn btn-link btn-sm text-danger" onClick={() => handleDelete(ev.id)}>Delete</button>
           </li>
         ))}
       </ul>

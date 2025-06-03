@@ -1,29 +1,20 @@
 import { useState, useEffect } from 'react';
-
-// Use your new admin token key for consistency
-const TOKEN_KEY = "adminToken";
+import { adminApi } from '../utils/api';
 
 export default function News() {
   const [news, setNews] = useState([]);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    const fetchNews = async () => {
-      try {
-        const token = typeof window !== "undefined" ? localStorage.getItem(TOKEN_KEY) : "";
-        const res = await fetch('/api/admin/news', {
-          headers: token ? { 'Authorization': `Bearer ${token}` } : {},
-        });
-        if (!res.ok) throw new Error('Failed to fetch news');
-        const data = await res.json();
-        // Support both array or object with .news property
-        setNews(Array.isArray(data) ? data : data.news || []);
-      } catch (err) {
-        setError('Failed to fetch news');
-      }
-    };
-    fetchNews();
-  }, []);
+  useEffect(() => { fetchNews(); }, []);
+  async function fetchNews() {
+    try {
+      const data = await adminApi('getNews');
+      setNews(Array.isArray(data) ? data : data.news || []);
+      setError(null);
+    } catch (err) {
+      setError('Failed to fetch news');
+    }
+  }
 
   return (
     <div>

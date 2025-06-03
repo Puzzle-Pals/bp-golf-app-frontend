@@ -1,35 +1,25 @@
 import React, { useEffect, useState } from 'react';
-import { apiFetch } from '../utils/api';
+import { adminApi } from '../utils/api';
 
 export default function ScoringSystemToggle() {
   const [enabled, setEnabled] = useState(true);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    fetchSettings();
-  }, []);
+  useEffect(() => { fetchSettings(); }, []);
 
   async function fetchSettings() {
     try {
-      const settings = await apiFetch('/settings', { admin: true });
+      const settings = await adminApi('getSettings');
       setEnabled(!!settings.pointsSystemEnabled);
       setError('');
-    } catch (err) {
-      setError(err.message);
-    }
+    } catch (err) { setError(err.message); }
   }
 
   async function handleToggle() {
     try {
-      await apiFetch('/settings', {
-        method: 'PUT',
-        data: { pointsSystemEnabled: !enabled },
-        admin: true,
-      });
-      setEnabled((v) => !v);
-    } catch (err) {
-      setError(err.message);
-    }
+      await adminApi('updateSettings', { pointsSystemEnabled: !enabled });
+      setEnabled(v => !v);
+    } catch (err) { setError(err.message); }
   }
 
   return (

@@ -6,6 +6,7 @@ import WeeklyResultsManagement from "../components/WeeklyResultsManagement";
 import PrizePayouts from "../components/PrizePayouts";
 import ScoringSystemToggle from "../components/ScoringSystemToggle";
 import Messaging from "../components/Messaging";
+import News from "../components/News";
 import AdminLogin from "../components/AdminLogin";
 
 const TOKEN_KEY = "adminToken";
@@ -36,9 +37,7 @@ export default function AdminPage() {
     <div className="container mt-4">
       <h1 className="text-center mb-4">Admin Panel</h1>
       <div className="mb-3">
-        <button className="btn btn-secondary btn-sm float-end" onClick={handleLogout}>
-          Logout
-        </button>
+        <button className="btn btn-secondary btn-sm float-end" onClick={handleLogout}>Logout</button>
       </div>
       <PlayerManagement />
       <EventManagement />
@@ -47,6 +46,7 @@ export default function AdminPage() {
       <PrizePayouts />
       <ScoringSystemToggle />
       <Messaging />
+      <News />
     </div>
   );
 }
