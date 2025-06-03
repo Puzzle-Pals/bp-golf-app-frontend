@@ -8,7 +8,7 @@ export default function WeeklyResults() {
   useEffect(() => {
     const fetchResults = async () => {
       try {
-        const res = await fetch('/api/weekly-results');
+        const res = await fetch('/api/weekly_results');
         if (!res.ok) throw new Error('Failed to fetch weekly results');
         const data = await res.json();
         setResults(data);
@@ -21,60 +21,17 @@ export default function WeeklyResults() {
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#1B4D3E' }}>
-      <nav
-        style={{
-          backgroundColor: '#3C2F2F',
-          padding: '1rem',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
-        }}
-      >
-        <div
-          style={{
-            maxWidth: '1200px',
-            margin: '0 auto',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-          }}
-        >
-          <Link
-            href="/"
-            style={{ color: '#F5E8C7', fontSize: '1.5rem', fontWeight: 'bold', textDecoration: 'none' }}
-          >
-            BP Men’s League
-          </Link>
+      <nav style={{ backgroundColor: '#3C2F2F', padding: '1rem', boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Link href="/" style={{ color: '#F5E8C7', fontSize: '1.5rem', fontWeight: 'bold', textDecoration: 'none' }}>BP Men’s League</Link>
           <div style={{ display: 'flex', gap: '1rem' }}>
-            <Link
-              href="/weekly-results"
-              style={{ color: '#F5E8C7', textDecoration: 'none', cursor: 'pointer' }}
-            >
-              Weekly Results
-            </Link>
-            <Link
-              href="/player-stats"
-              style={{ color: '#F5E8C7', textDecoration: 'none', cursor: 'pointer' }}
-            >
-              Player Stats
-            </Link>
-            <Link
-              href="/leaderboard"
-              style={{ color: '#F5E8C7', textDecoration: 'none', cursor: 'pointer' }}
-            >
-              Leaderboard
-            </Link>
+            <Link href="/weekly-results" style={{ color: '#F5E8C7', textDecoration: 'none' }}>Weekly Results</Link>
+            <Link href="/player-stats" style={{ color: '#F5E8C7', textDecoration: 'none' }}>Player Stats</Link>
+            <Link href="/leaderboard" style={{ color: '#F5E8C7', textDecoration: 'none' }}>Leaderboard</Link>
           </div>
         </div>
       </nav>
-
-      <main
-        style={{
-          maxWidth: '1200px',
-          margin: '0 auto',
-          padding: '3rem 0',
-          textAlign: 'center',
-          color: '#F5E8C7',
-        }}
-      >
+      <main style={{ maxWidth: '1200px', margin: '0 auto', padding: '3rem 0', color: '#F5E8C7' }}>
         <h2 style={{ fontSize: '2.25rem', fontWeight: 'bold', marginBottom: '1rem' }}>
           Weekly Results
         </h2>

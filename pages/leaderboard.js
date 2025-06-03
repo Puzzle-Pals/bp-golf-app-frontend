@@ -53,7 +53,7 @@ export default function Leaderboard() {
                 </tr>
               ) : (
                 leaderboard.map((row, idx) => (
-                  <tr key={row.player_id} style={{ backgroundColor: idx % 2 === 0 ? '#2A3B35' : '#1B4D3E' }}>
+                  <tr key={row.player_id || idx} style={{ backgroundColor: idx % 2 === 0 ? '#2A3B35' : '#1B4D3E' }}>
                     <td style={{ padding: '0.75rem', border: '1px solid #F5E8C7' }}>{idx + 1}</td>
                     <td style={{ padding: '0.75rem', border: '1px solid #F5E8C7' }}>{row.name}</td>
                     <td style={{ padding: '0.75rem', border: '1px solid #F5E8C7' }}>{row.totalpoints}</td>
