@@ -10,8 +10,8 @@ export default function AdminLogin() {
     setLoading(true);
     setError("");
     try {
-      // Use the backend URL from env for login
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`, {
+      // USE RELATIVE PATH!
+      const res = await fetch('/api/auth/login', {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ password }),
@@ -22,7 +22,7 @@ export default function AdminLogin() {
       // Store the token for later authenticated requests (cookie, localStorage, etc)
       localStorage.setItem("bp_admin_token", data.token);
 
-      // Redirect to dashboard
+      // Redirect to dashboard (change this to your desired admin page)
       window.location.href = "/admin/dashboard";
     } catch (err) {
       setError(err.message);
