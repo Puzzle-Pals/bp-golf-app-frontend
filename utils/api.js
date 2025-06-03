@@ -1,4 +1,7 @@
-const ADMIN_URL = "/api/admin";
+// Get API base from env or default to backend deployment
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_BASE_URL || "https://bp-golf-app-backend.vercel.app/api";
+const ADMIN_URL = `${API_BASE}/admin`;
 
 // Get JWT from localStorage
 function getToken() {
@@ -53,8 +56,7 @@ export async function adminDeletePlayer(id) {
   return adminApi("deletePlayer", { id });
 }
 
-// Repeat for other admin resources:
-// Example for events:
+// Events
 export async function adminGetEvents() {
   return adminApi("getEvents");
 }
@@ -68,7 +70,7 @@ export async function adminDeleteEvent(id) {
   return adminApi("deleteEvent", { id });
 }
 
-// Example for weekly rounds:
+// Weekly rounds
 export async function adminGetWeeklyRounds() {
   return adminApi("getWeeklyRounds");
 }
@@ -82,7 +84,7 @@ export async function adminDeleteWeeklyRound(id) {
   return adminApi("deleteWeeklyRound", { id });
 }
 
-// Example for weekly results:
+// Weekly results
 export async function adminGetWeeklyResults() {
   return adminApi("getWeeklyResults");
 }
@@ -96,7 +98,7 @@ export async function adminDeleteWeeklyResult(id) {
   return adminApi("deleteWeeklyResult", { id });
 }
 
-// Example for prize payouts:
+// Prize payouts
 export async function adminGetPrizePayouts() {
   return adminApi("getPrizePayouts");
 }
@@ -141,10 +143,13 @@ export async function adminDeleteNews(id) {
 }
 
 // ----------- PUBLIC ENDPOINTS ------------
-const API_BASE = "/api";
-
+// If public endpoints are served by the backend, use API_BASE
+// If they are served by frontend, keep them as "/api"
 export async function apiFetch(path, { method = "GET", data } = {}) {
-  const url = API_BASE + path;
+  // If path starts with '/api', remove it to avoid double '/api/api'
+  let urlPath = path.startsWith("/api") ? path.slice(4) : path;
+  // Always point to backend for public endpoints
+  const url = `${API_BASE}${urlPath.startsWith("/") ? urlPath : "/" + urlPath}`;
   const headers = { "Content-Type": "application/json" };
   const options = { method, headers };
   if (data) options.body = JSON.stringify(data);
