@@ -2,22 +2,21 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 
 export default function WeeklyResults() {
-  const [news, setNews] = useState({ date: '', details: '' });
+  const [results, setResults] = useState([]);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    const fetchNews = async () => {
+    const fetchResults = async () => {
       try {
-        // Use relative path for API, not NEXT_PUBLIC_API_URL
-        const res = await fetch('/api/news');
-        if (!res.ok) throw new Error('Failed to fetch news');
+        const res = await fetch('/api/weekly-results');
+        if (!res.ok) throw new Error('Failed to fetch weekly results');
         const data = await res.json();
-        setNews(data.length > 0 ? data[0] : { date: '', details: '' });
+        setResults(data);
       } catch {
-        setError('Failed to fetch news');
+        setError('Failed to fetch weekly results');
       }
     };
-    fetchNews();
+    fetchResults();
   }, []);
 
   return (
@@ -77,35 +76,50 @@ export default function WeeklyResults() {
         }}
       >
         <h2 style={{ fontSize: '2.25rem', fontWeight: 'bold', marginBottom: '1rem' }}>
-          Welcome to BP Men’s League
+          Weekly Results
         </h2>
-        <p style={{ fontSize: '1.125rem', marginBottom: '2rem' }}>
-          Track your scores, stats, and standings in our men's golf league!
-        </p>
-
-        <div
-          style={{
-            backgroundColor: '#F5E8C7',
-            padding: '1.5rem',
-            borderRadius: '0.5rem',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-            maxWidth: '600px',
-            margin: '0 auto',
-            color: '#3C2F2F',
-          }}
-        >
-          <h3 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1rem' }}>Latest News</h3>
-          {error ? (
-            <p style={{ color: '#C71585' }}>{error}</p>
-          ) : (
-            <>
-              <p>
-                <strong>Date:</strong> {news.date || 'No date available'}
-              </p>
-              <p>{news.details || 'No news available.'}</p>
-            </>
-          )}
-        </div>
+        {error ? (
+          <p style={{ color: '#C71585' }}>{error}</p>
+        ) : results.length === 0 ? (
+          <p>No weekly results available.</p>
+        ) : (
+          <table style={{ width: '100%', borderCollapse: 'collapse', color: '#F5E8C7', margin: '0 auto' }}>
+            <thead style={{ backgroundColor: '#3C2F2F' }}>
+              <tr>
+                <th style={{ padding: '0.75rem', border: '1px solid #F5E8C7' }}>Week</th>
+                <th style={{ padding: '0.75rem', border: '1px solid #F5E8C7' }}>Date</th>
+                <th style={{ padding: '0.75rem', border: '1px solid #F5E8C7' }}>Winner(s)</th>
+                <th style={{ padding: '0.75rem', border: '1px solid #F5E8C7' }}>Second Place</th>
+                <th style={{ padding: '0.75rem', border: '1px solid #F5E8C7' }}>Deuce Pot</th>
+                <th style={{ padding: '0.75rem', border: '1px solid #F5E8C7' }}>Closest to Pin</th>
+                <th style={{ padding: '0.75rem', border: '1px solid #F5E8C7' }}>Highest Score</th>
+              </tr>
+            </thead>
+            <tbody>
+              {results.map((res, idx) => (
+                <tr key={res.id || idx} style={{ backgroundColor: idx % 2 === 0 ? '#2A3B35' : '#1B4D3E' }}>
+                  <td style={{ padding: '0.75rem', border: '1px solid #F5E8C7' }}>{res.week_number || res.week || idx + 1}</td>
+                  <td style={{ padding: '0.75rem', border: '1px solid #F5E8C7' }}>{res.date ? new Date(res.date).toLocaleDateString() : ''}</td>
+                  <td style={{ padding: '0.75rem', border: '1px solid #F5E8C7' }}>
+                    {[res.winner1_name, res.winner2_name].filter(Boolean).join(', ') || [res.winner1_id, res.winner2_id].filter(Boolean).join(', ')}
+                  </td>
+                  <td style={{ padding: '0.75rem', border: '1px solid #F5E8C7' }}>
+                    {[res.second_place1_name, res.second_place2_name].filter(Boolean).join(', ') || [res.second_place1_id, res.second_place2_id].filter(Boolean).join(', ')}
+                  </td>
+                  <td style={{ padding: '0.75rem', border: '1px solid #F5E8C7' }}>
+                    {[res.deuce_pot1_name, res.deuce_pot2_name].filter(Boolean).join(', ') || [res.deuce_pot1_id, res.deuce_pot2_id].filter(Boolean).join(', ')}
+                  </td>
+                  <td style={{ padding: '0.75rem', border: '1px solid #F5E8C7' }}>
+                    {res.closest_to_pin_name || res.closest_to_pin_id || ''}
+                  </td>
+                  <td style={{ padding: '0.75rem', border: '1px solid #F5E8C7' }}>
+                    {res.highest_score_name || res.highest_score_id || ''}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </main>
     </div>
   );

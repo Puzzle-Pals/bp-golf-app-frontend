@@ -1,115 +1,155 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import DatePicker from 'react-datepicker';
-import 'react-datepicker/dist/react-datepicker.css';
+import React, { useEffect, useState } from 'react';
+import { apiFetch } from '../utils/api';
 
-function WeeklyRoundManagement() {
+export default function WeeklyRoundManagement() {
   const [rounds, setRounds] = useState([]);
-  const [events, setEvents] = useState([]);
-  const [eventId, setEventId] = useState('');
-  const [weekNumber, setWeekNumber] = useState('');
+  const [form, setForm] = useState({ event_id: '', player_id: '', score: '', points: '' });
+  const [editing, setEditing] = useState(null);
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
 
-  const fetchData = async () => {
-    try {
-      const [roundsRes, eventsRes] = await Promise.all([
-        axios.get('http://localhost:3000/api/admin/weekly_rounds'),
-        axios.get('http://localhost:3000/api/admin/events'),
-      ]);
-      setRounds(roundsRes.data);
-      setEvents(eventsRes.data);
-    } catch (err) {
-      setError('Failed to fetch data');
-    }
-  };
+  // For select dropdowns
+  const [events, setEvents] = useState([]);
+  const [players, setPlayers] = useState([]);
 
   useEffect(() => {
-    fetchData();
+    fetchRounds();
+    fetchEvents();
+    fetchPlayers();
   }, []);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    setSuccess('');
+  async function fetchRounds() {
     try {
-      await axios.post('http://localhost:3000/api/admin/weekly_rounds', {
-        event_id: parseInt(eventId),
-        week_number: parseInt(weekNumber),
-      });
-      setSuccess('Weekly round added');
-      setEventId('');
-      setWeekNumber('');
-      fetchData();
+      setRounds(await apiFetch('/weekly_rounds', { admin: true }));
+      setError('');
     } catch (err) {
-      setError('Failed to add weekly round');
+      setError(err.message);
     }
-  };
+  }
 
-  const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this weekly round?')) {
-      try {
-        await axios.delete(`http://localhost:3000/api/admin/weekly_rounds/${id}`);
-        setSuccess('Weekly round deleted');
-        fetchData();
-      } catch (err) {
-        setError('Failed to delete weekly round');
+  async function fetchEvents() {
+    try {
+      setEvents(await apiFetch('/events', { admin: true }));
+    } catch {}
+  }
+
+  async function fetchPlayers() {
+    try {
+      setPlayers(await apiFetch('/players', { admin: true }));
+    } catch {}
+  }
+
+  async function handleAddOrUpdate(e) {
+    e.preventDefault();
+    try {
+      if (editing) {
+        await apiFetch('/weekly_rounds', {
+          method: 'PUT',
+          data: { ...form, id: editing },
+          admin: true,
+        });
+      } else {
+        await apiFetch('/weekly_rounds', {
+          method: 'POST',
+          data: form,
+          admin: true,
+        });
       }
+      setForm({ event_id: '', player_id: '', score: '', points: '' });
+      setEditing(null);
+      fetchRounds();
+    } catch (err) {
+      setError(err.message);
     }
-  };
+  }
+
+  function handleEdit(round) {
+    setForm({
+      event_id: round.event_id,
+      player_id: round.player_id,
+      score: round.score,
+      points: round.points,
+    });
+    setEditing(round.id);
+  }
+
+  async function handleDelete(id) {
+    if (!window.confirm('Delete this round?')) return;
+    try {
+      await apiFetch(`/weekly_rounds?id=${id}`, { method: 'DELETE', admin: true });
+      fetchRounds();
+    } catch (err) {
+      setError(err.message);
+    }
+  }
 
   return (
-    <div>
-      <form onSubmit={handleSubmit}>
+    <div className="mb-4">
+      <h3>Weekly Round Management</h3>
+      <form onSubmit={handleAddOrUpdate} className="mb-3">
         <select
-          value={eventId}
-          onChange={(e) => setEventId(e.target.value)}
+          value={form.event_id}
+          onChange={e => setForm(f => ({ ...f, event_id: e.target.value }))}
           required
+          className="me-2"
         >
           <option value="">Select Event</option>
-          {events.map(event => (
-            <option key={event.id} value={event.id}>
-              {event.date} {event.time} - {event.course}
-            </option>
+          {events.map(ev => (
+            <option key={ev.id} value={ev.id}>{ev.date} – {ev.course}</option>
+          ))}
+        </select>
+        <select
+          value={form.player_id}
+          onChange={e => setForm(f => ({ ...f, player_id: e.target.value }))}
+          required
+          className="me-2"
+        >
+          <option value="">Select Player</option>
+          {players.map(p => (
+            <option key={p.id} value={p.id}>{p.name}</option>
           ))}
         </select>
         <input
+          placeholder="Score"
           type="number"
-          placeholder="Week Number"
-          value={weekNumber}
-          onChange={(e) => setWeekNumber(e.target.value)}
+          value={form.score}
+          onChange={e => setForm(f => ({ ...f, score: e.target.value }))}
           required
+          className="me-2"
         />
-        <button type="submit">Add Weekly Round</button>
+        <input
+          placeholder="Points"
+          type="number"
+          value={form.points}
+          onChange={e => setForm(f => ({ ...f, points: e.target.value }))}
+          className="me-2"
+        />
+        <button type="submit" className="btn btn-primary btn-sm me-2">
+          {editing ? 'Update' : 'Add'} Round
+        </button>
+        {editing && (
+          <button
+            type="button"
+            className="btn btn-secondary btn-sm"
+            onClick={() => { setEditing(null); setForm({ event_id: '', player_id: '', score: '', points: '' }); }}
+          >
+            Cancel
+          </button>
+        )}
       </form>
-      {error && <p className="error">{error}</p>}
-      {success && <p className="success">{success}</p>}
-      <table>
-        <thead>
-          <tr>
-            <th>Week</th>
-            <th>Date</th>
-            <th>Time</th>
-            <th>Course</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rounds.map(round => (
-            <tr key={round.id}>
-              <td>{round.week_number}</td>
-              <td>{round.date}</td>
-              <td>{round.time}</td>
-              <td>{round.course}</td>
-              <td>
-                <button onClick={() => handleDelete(round.id)}>Delete</button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      {error && <div className="text-danger mb-2">{error}</div>}
+      <ul>
+        {rounds.map(round => (
+          <li key={round.id}>
+            Event: {round.event_id}, Player: {round.player_id}, Score: {round.score}, Points: {round.points}{' '}
+            <button className="btn btn-link btn-sm" onClick={() => handleEdit(round)}>
+              Edit
+            </button>
+            <button className="btn btn-link btn-sm text-danger" onClick={() => handleDelete(round.id)}>
+              Delete
+            </button>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
-
-export default WeeklyRoundManagement;

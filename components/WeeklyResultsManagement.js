@@ -1,142 +1,200 @@
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
-
-const TOKEN_KEY = "admin_jwt";
+import React, { useEffect, useState } from 'react';
+import { apiFetch } from '../utils/api';
 
 export default function WeeklyResultsManagement() {
   const [results, setResults] = useState([]);
-  const [pointsSystemEnabled, setPointsSystemEnabled] = useState(false);
+  const [form, setForm] = useState({
+    weekly_round_id: '',
+    winner1_id: '',
+    winner2_id: '',
+    second_place1_id: '',
+    second_place2_id: '',
+    deuce_pot1_id: '',
+    deuce_pot2_id: '',
+    closest_to_pin_id: '',
+    highest_score_id: ''
+  });
+  const [editing, setEditing] = useState(null);
   const [error, setError] = useState('');
+
+  // For select dropdowns
+  const [rounds, setRounds] = useState([]);
+  const [players, setPlayers] = useState([]);
 
   useEffect(() => {
     fetchResults();
-    fetchPointsSystem();
+    fetchRounds();
+    fetchPlayers();
   }, []);
 
-  const fetchResults = async () => {
+  async function fetchResults() {
     try {
-      const res = await fetch('/api/admin/weekly_results', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem(TOKEN_KEY)}`
-        }
-      });
-      if (!res.ok) throw new Error('Failed to fetch');
-      const data = await res.json();
-      setResults(data.weekly_results || data.results || data);
-    } catch (err) {
-      setError('Failed to fetch results');
-    }
-  };
-
-  const fetchPointsSystem = async () => {
-    try {
-      const res = await fetch('/api/admin/scoring_system', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem(TOKEN_KEY)}`
-        }
-      });
-      if (!res.ok) throw new Error('Failed to fetch');
-      const data = await res.json();
-      setPointsSystemEnabled(data.pointsSystemEnabled || data.enabled || false);
-    } catch (err) {
-      setError('Failed to fetch points system');
-    }
-  };
-
-  const handleTogglePointsSystem = async () => {
-    try {
-      const newState = !pointsSystemEnabled;
-      const res = await fetch('/api/admin/scoring_system', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem(TOKEN_KEY)}`
-        },
-        body: JSON.stringify({ pointsSystemEnabled: newState }),
-      });
-      if (!res.ok) throw new Error('Failed to update');
-      setPointsSystemEnabled(newState);
+      setResults(await apiFetch('/weekly_results', { admin: true }));
+      setError('');
     } catch (err) {
       setError(err.message);
     }
-  };
+  }
 
-  const handleDelete = async (id) => {
+  async function fetchRounds() {
     try {
-      const res = await fetch(`/api/admin/weekly_results/${id}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem(TOKEN_KEY)}`
-        }
+      setRounds(await apiFetch('/weekly_rounds', { admin: true }));
+    } catch {}
+  }
+
+  async function fetchPlayers() {
+    try {
+      setPlayers(await apiFetch('/players', { admin: true }));
+    } catch {}
+  }
+
+  async function handleAddOrUpdate(e) {
+    e.preventDefault();
+    try {
+      if (editing) {
+        await apiFetch('/weekly_results', {
+          method: 'PUT',
+          data: { ...form, id: editing },
+          admin: true,
+        });
+      } else {
+        await apiFetch('/weekly_results', {
+          method: 'POST',
+          data: form,
+          admin: true,
+        });
+      }
+      setForm({
+        weekly_round_id: '',
+        winner1_id: '',
+        winner2_id: '',
+        second_place1_id: '',
+        second_place2_id: '',
+        deuce_pot1_id: '',
+        deuce_pot2_id: '',
+        closest_to_pin_id: '',
+        highest_score_id: ''
       });
-      if (!res.ok) throw new Error('Failed to delete result');
+      setEditing(null);
       fetchResults();
     } catch (err) {
       setError(err.message);
     }
-  };
+  }
+
+  function handleEdit(res) {
+    setForm({
+      weekly_round_id: res.weekly_round_id,
+      winner1_id: res.winner1_id || '',
+      winner2_id: res.winner2_id || '',
+      second_place1_id: res.second_place1_id || '',
+      second_place2_id: res.second_place2_id || '',
+      deuce_pot1_id: res.deuce_pot1_id || '',
+      deuce_pot2_id: res.deuce_pot2_id || '',
+      closest_to_pin_id: res.closest_to_pin_id || '',
+      highest_score_id: res.highest_score_id || ''
+    });
+    setEditing(res.id);
+  }
+
+  async function handleDelete(id) {
+    if (!window.confirm('Delete this weekly result?')) return;
+    try {
+      await apiFetch(`/weekly_results?id=${id}`, { method: 'DELETE', admin: true });
+      fetchResults();
+    } catch (err) {
+      setError(err.message);
+    }
+  }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-      <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#3C2F2F' }}>Manage Weekly Results</h2>
-      {error && <p style={{ color: '#C71585' }}>{error}</p>}
-      <div>
-        <label style={{ display: 'block', color: '#3C2F2F', fontWeight: '600', marginBottom: '0.5rem' }}>
-          Points System (3 for Win, 2 for 2nd, 1 for Highest Score)
-        </label>
-        <button
-          onClick={handleTogglePointsSystem}
-          style={{
-            backgroundColor: pointsSystemEnabled ? '#C71585' : '#3C2F2F',
-            color: '#F5E8C7',
-            padding: '0.5rem 1rem',
-            borderRadius: '0.25rem',
-            transition: 'background-color 0.2s, color 0.2s',
-          }}
-          onMouseOver={(e) => { e.target.style.backgroundColor = '#87CEEB'; e.target.style.color = '#3C2F2F'; }}
-          onMouseOut={(e) => { e.target.style.backgroundColor = pointsSystemEnabled ? '#C71585' : '#3C2F2F'; e.target.style.color = '#F5E8C7'; }}
+    <div className="mb-4">
+      <h3>Weekly Results Management</h3>
+      <form onSubmit={handleAddOrUpdate} className="mb-3">
+        <select
+          value={form.weekly_round_id}
+          onChange={e => setForm(f => ({ ...f, weekly_round_id: e.target.value }))}
+          required
+          className="me-2"
         >
-          {pointsSystemEnabled ? 'Disable Points System' : 'Enable Points System'}
+          <option value="">Select Weekly Round</option>
+          {rounds.map(r => (
+            <option key={r.id} value={r.id}>Round {r.id}</option>
+          ))}
+        </select>
+        {/* Winner 1 & 2 */}
+        <select value={form.winner1_id} onChange={e => setForm(f => ({ ...f, winner1_id: e.target.value }))} className="me-2">
+          <option value="">Winner 1</option>
+          {players.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+        </select>
+        <select value={form.winner2_id} onChange={e => setForm(f => ({ ...f, winner2_id: e.target.value }))} className="me-2">
+          <option value="">Winner 2</option>
+          {players.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+        </select>
+        {/* Second Place 1 & 2 */}
+        <select value={form.second_place1_id} onChange={e => setForm(f => ({ ...f, second_place1_id: e.target.value }))} className="me-2">
+          <option value="">Second Place 1</option>
+          {players.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+        </select>
+        <select value={form.second_place2_id} onChange={e => setForm(f => ({ ...f, second_place2_id: e.target.value }))} className="me-2">
+          <option value="">Second Place 2</option>
+          {players.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+        </select>
+        {/* Deuce Pot 1 & 2 */}
+        <select value={form.deuce_pot1_id} onChange={e => setForm(f => ({ ...f, deuce_pot1_id: e.target.value }))} className="me-2">
+          <option value="">Deuce Pot 1</option>
+          {players.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+        </select>
+        <select value={form.deuce_pot2_id} onChange={e => setForm(f => ({ ...f, deuce_pot2_id: e.target.value }))} className="me-2">
+          <option value="">Deuce Pot 2</option>
+          {players.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+        </select>
+        {/* Closest to Pin, Highest Score */}
+        <select value={form.closest_to_pin_id} onChange={e => setForm(f => ({ ...f, closest_to_pin_id: e.target.value }))} className="me-2">
+          <option value="">Closest to Pin</option>
+          {players.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+        </select>
+        <select value={form.highest_score_id} onChange={e => setForm(f => ({ ...f, highest_score_id: e.target.value }))} className="me-2">
+          <option value="">Highest Score</option>
+          {players.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+        </select>
+        <button type="submit" className="btn btn-primary btn-sm me-2">
+          {editing ? 'Update' : 'Add'} Result
         </button>
-      </div>
-      <Link href="/admin/add-week">
-        <button
-          style={{ backgroundColor: '#C71585', color: '#F5E8C7', padding: '0.5rem 1rem', borderRadius: '0.25rem', transition: 'background-color 0.2s, color 0.2s' }}
-          onMouseOver={(e) => { e.target.style.backgroundColor = '#87CEEB'; e.target.style.color = '#3C2F2F'; }}
-          onMouseOut={(e) => { e.target.style.backgroundColor = '#C71585'; e.target.style.color = '#F5E8C7'; }}
-        >
-          Add Week
-        </button>
-      </Link>
-      <div>
-        <h3 style={{ fontSize: '1.25rem', fontWeight: '600', color: '#3C2F2F', marginBottom: '1rem' }}>Existing Results</h3>
-        {results.map((result) => (
-          <div key={result.id} style={{ backgroundColor: '#F5E8C7', padding: '1rem', borderRadius: '0.25rem', marginBottom: '1rem' }}>
-            <p style={{ color: '#3C2F2F', fontWeight: '600' }}>Week {result.week}</p>
-            {/* Defensive rendering in case of missing/flat data */}
-            <p style={{ color: '#3C2F2F' }}>Winners: {result.winners?.player1 || result.winners?.[0] || ''}{result.winners?.player2 ? `, ${result.winners.player2}` : ''} {result.winners?.score ? `(Score: ${result.winners.score})` : ''}</p>
-            <p style={{ color: '#3C2F2F' }}>2nd Place: {result.secondPlace?.player1 || result.secondPlace?.[0] || ''}{result.secondPlace?.player2 ? `, ${result.secondPlace.player2}` : ''} {result.secondPlace?.score ? `(Score: ${result.secondPlace.score})` : ''}</p>
-            <p style={{ color: '#3C2F2F' }}>Highest Score: {result.highestScore?.player1 || result.highestScore?.[0] || ''}{result.highestScore?.player2 ? `, ${result.highestScore.player2}` : ''} {result.highestScore?.score ? `(Score: ${result.highestScore.score})` : ''}</p>
-            <p style={{ color: '#3C2F2F' }}>Deuce Pot: {result.deucePot?.player || result.deucePot?.[0] || ''}</p>
-            <p style={{ color: '#3C2F2F' }}>Closest to Pin: {result.closestToPin?.player || result.closestToPin?.[0] || ''}</p>
-            <p style={{ color: '#3C2F2F', fontWeight: '600', marginTop: '0.5rem' }}>Prize Payouts</p>
-            <p style={{ color: '#3C2F2F' }}>Total: ${result.payouts?.total || 'N/A'}</p>
-            <p style={{ color: '#3C2F2F' }}>Winners (30%): ${result.payouts?.winners?.amount} to {Array.isArray(result.payouts?.winners?.players) ? result.payouts?.winners?.players.join(', ') : ''}</p>
-            <p style={{ color: '#3C2F2F' }}>2nd Place (20%): ${result.payouts?.secondPlace?.amount} to {Array.isArray(result.payouts?.secondPlace?.players) ? result.payouts?.secondPlace?.players.join(', ') : ''}</p>
-            <p style={{ color: '#3C2F2F' }}>Deuce Pot (20%): ${result.payouts?.deucePot?.amount} to {Array.isArray(result.payouts?.deucePot?.players) ? result.payouts?.deucePot?.players.join(', ') : ''}</p>
-            <p style={{ color: '#3C2F2F' }}>Closest to Pin (20%): ${result.payouts?.closestToPin?.amount} to {Array.isArray(result.payouts?.closestToPin?.players) ? result.payouts?.closestToPin?.players[0] : ''}</p>
-            <p style={{ color: '#3C2F2F' }}>Highest Score (10%): ${result.payouts?.highestScore?.amount} to {Array.isArray(result.payouts?.highestScore?.players) ? result.payouts?.highestScore?.players[0] : ''}</p>
-            <button
-              onClick={() => handleDelete(result.id)}
-              style={{ backgroundColor: '#C71585', color: '#F5E8C7', padding: '0.25rem 0.5rem', borderRadius: '0.25rem', transition: 'background-color 0.2s, color 0.2s', marginTop: '0.5rem' }}
-              onMouseOver={(e) => { e.target.style.backgroundColor = '#87CEEB'; e.target.style.color = '#3C2F2F'; }}
-              onMouseOut={(e) => { e.target.style.backgroundColor = '#C71585'; e.target.style.color = '#F5E8C7'; }}
-            >
+        {editing && (
+          <button
+            type="button"
+            className="btn btn-secondary btn-sm"
+            onClick={() => { setEditing(null); setForm({
+              weekly_round_id: '',
+              winner1_id: '',
+              winner2_id: '',
+              second_place1_id: '',
+              second_place2_id: '',
+              deuce_pot1_id: '',
+              deuce_pot2_id: '',
+              closest_to_pin_id: '',
+              highest_score_id: ''
+            }); }}
+          >
+            Cancel
+          </button>
+        )}
+      </form>
+      {error && <div className="text-danger mb-2">{error}</div>}
+      <ul>
+        {results.map(res => (
+          <li key={res.id}>
+            Round: {res.weekly_round_id}, Winners: {res.winner1_id}, {res.winner2_id}, Second: {res.second_place1_id}, {res.second_place2_id}
+            <button className="btn btn-link btn-sm" onClick={() => handleEdit(res)}>
+              Edit
+            </button>
+            <button className="btn btn-link btn-sm text-danger" onClick={() => handleDelete(res.id)}>
               Delete
             </button>
-          </div>
+          </li>
         ))}
-      </div>
+      </ul>
     </div>
   );
 }

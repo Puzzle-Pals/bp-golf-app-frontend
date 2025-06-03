@@ -1,108 +1,64 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import React, { useState } from 'react';
+import { sendAdminMessage } from '../utils/api';
 
-function Messaging() {
-  const [players, setPlayers] = useState([]);
-  const [selectedPlayers, setSelectedPlayers] = useState([]);
+export default function Messaging() {
+  const [recipients, setRecipients] = useState('');
+  const [subject, setSubject] = useState('');
   const [message, setMessage] = useState('');
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [status, setStatus] = useState('');
 
-  const fetchPlayers = async () => {
-    try {
-      const response = await axios.get('http://localhost:3000/api/admin/players');
-      setPlayers(response.data);
-    } catch (err) {
-      setError('Failed to fetch players');
-    }
-  };
-
-  useEffect(() => {
-    fetchPlayers();
-  }, []);
-
-  const handleSelectAll = (e) => {
-    if (e.target.checked) {
-      setSelectedPlayers(players.map(p => p.id));
-    } else {
-      setSelectedPlayers([]);
-    }
-  };
-
-  const handlePlayerSelect = (id) => {
-    setSelectedPlayers(prev =>
-      prev.includes(id) ? prev.filter(pid => pid !== id) : [...prev, id]
-    );
-  };
-
-  const handleSubmit = async (e) => {
+  const handleSend = async e => {
     e.preventDefault();
-    setError('');
-    setSuccess('');
-    if (selectedPlayers.length === 0) {
-      setError('Please select at least one player');
-      return;
-    }
+    setStatus('Sending...');
     try {
-      await axios.post('http://localhost:3000/api/admin/messaging', {
-        player_ids: selectedPlayers,
-        message,
+      await sendAdminMessage({
+        recipientEmails: recipients,
+        subject,
+        message
       });
-      setSuccess('Message sent');
-      setSelectedPlayers([]);
+      setStatus('Message sent!');
+      setRecipients('');
+      setSubject('');
       setMessage('');
     } catch (err) {
-      setError('Failed to send message');
+      setStatus('Failed: ' + err.message);
     }
   };
 
   return (
-    <div>
-      <form onSubmit={handleSubmit}>
-        <textarea
-          placeholder="Message"
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          required
-        />
-        <label>
+    <div className="mb-4">
+      <h3>Messaging</h3>
+      <form onSubmit={handleSend}>
+        <div className="mb-2">
+          <label>Recipients (comma separated):</label>
           <input
-            type="checkbox"
-            checked={selectedPlayers.length === players.length}
-            onChange={handleSelectAll}
+            className="form-control"
+            value={recipients}
+            onChange={e => setRecipients(e.target.value)}
+            required
           />
-          Select All
-        </label>
-        <button type="submit">Send Message</button>
+        </div>
+        <div className="mb-2">
+          <label>Subject:</label>
+          <input
+            className="form-control"
+            value={subject}
+            onChange={e => setSubject(e.target.value)}
+            required
+          />
+        </div>
+        <div className="mb-2">
+          <label>Message:</label>
+          <textarea
+            className="form-control"
+            value={message}
+            onChange={e => setMessage(e.target.value)}
+            required
+          />
+        </div>
+        <button className="btn btn-primary" type="submit">Send</button>
       </form>
-      {error && <p className="error">{error}</p>}
-      {success && <p className="success">{success}</p>}
-      <table>
-        <thead>
-          <tr>
-            <th>Select</th>
-            <th>Name</th>
-            <th>Email</th>
-          </tr>
-        </thead>
-        <tbody>
-          {players.map(player => (
-            <tr key={player.id}>
-              <td>
-                <input
-                  type="checkbox"
-                  checked={selectedPlayers.includes(player.id)}
-                  onChange={() => handlePlayerSelect(player.id)}
-                />
-              </td>
-              <td>{player.name}</td>
-              <td>{player.email}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <div>{status}</div>
     </div>
   );
 }
-
-export default Messaging;

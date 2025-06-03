@@ -1,50 +1,45 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import React, { useEffect, useState } from 'react';
+import { apiFetch } from '../utils/api';
 
-function ScoringSystemToggle() {
-  const [isEnabled, setIsEnabled] = useState(false);
+export default function ScoringSystemToggle() {
+  const [enabled, setEnabled] = useState(true);
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-
-  const fetchStatus = async () => {
-    try {
-      const response = await axios.get('http://localhost:3000/api/admin/scoring_system');
-      setIsEnabled(response.data.is_enabled);
-    } catch (err) {
-      setError('Failed to fetch scoring system status');
-    }
-  };
 
   useEffect(() => {
-    fetchStatus();
+    fetchSettings();
   }, []);
 
-  const handleToggle = async () => {
-    setError('');
-    setSuccess('');
+  async function fetchSettings() {
     try {
-      await axios.put('http://localhost:3000/api/admin/scoring_system', { is_enabled: !isEnabled });
-      setIsEnabled(!isEnabled);
-      setSuccess('Scoring system updated');
+      const settings = await apiFetch('/settings', { admin: true });
+      setEnabled(!!settings.pointsSystemEnabled);
+      setError('');
     } catch (err) {
-      setError('Failed to update scoring system');
+      setError(err.message);
     }
-  };
+  }
+
+  async function handleToggle() {
+    try {
+      await apiFetch('/settings', {
+        method: 'PUT',
+        data: { pointsSystemEnabled: !enabled },
+        admin: true,
+      });
+      setEnabled((v) => !v);
+    } catch (err) {
+      setError(err.message);
+    }
+  }
 
   return (
-    <div>
-      <label>
-        <input
-          type="checkbox"
-          checked={isEnabled}
-          onChange={handleToggle}
-        />
-        Enable Scoring System (3 for Win, 2 for 2nd, 1 for Highest Score)
-      </label>
-      {error && <p className="error">{error}</p>}
-      {success && <p className="success">{success}</p>}
+    <div className="mb-4">
+      <h3>Scoring System</h3>
+      <p>Points system is <strong>{enabled ? "Enabled" : "Disabled"}</strong></p>
+      <button className="btn btn-sm btn-warning" onClick={handleToggle}>
+        {enabled ? "Disable" : "Enable"} Points System
+      </button>
+      {error && <div className="text-danger">{error}</div>}
     </div>
   );
 }
-
-export default ScoringSystemToggle;

@@ -40,21 +40,25 @@ export default function Leaderboard() {
             <thead style={{ backgroundColor: '#3C2F2F' }}>
               <tr>
                 <th style={{ padding: '0.75rem', border: '1px solid #F5E8C7' }}>Rank</th>
-                <th style={{ padding: '0.75rem', border: '1px solid #F5E8C7' }}>Team</th>
-                <th style={{ padding: '0.75rem', border: '1px solid #F5E8C7' }}>Points</th>
+                <th style={{ padding: '0.75rem', border: '1px solid #F5E8C7' }}>Player</th>
+                <th style={{ padding: '0.75rem', border: '1px solid #F5E8C7' }}>Total Points</th>
+                <th style={{ padding: '0.75rem', border: '1px solid #F5E8C7' }}>Total Score</th>
+                <th style={{ padding: '0.75rem', border: '1px solid #F5E8C7' }}>Events Played</th>
               </tr>
             </thead>
             <tbody>
               {leaderboard.length === 0 ? (
                 <tr>
-                  <td colSpan="3" style={{ padding: '1rem', textAlign: 'center' }}>No leaderboard data available.</td>
+                  <td colSpan="5" style={{ padding: '1rem', textAlign: 'center' }}>No leaderboard data available.</td>
                 </tr>
               ) : (
-                leaderboard.map(({ rank, team, points }, idx) => (
-                  <tr key={idx} style={{ backgroundColor: idx % 2 === 0 ? '#2A3B35' : '#1B4D3E' }}>
-                    <td style={{ padding: '0.75rem', border: '1px solid #F5E8C7' }}>{rank}</td>
-                    <td style={{ padding: '0.75rem', border: '1px solid #F5E8C7' }}>{team}</td>
-                    <td style={{ padding: '0.75rem', border: '1px solid #F5E8C7' }}>{points}</td>
+                leaderboard.map((row, idx) => (
+                  <tr key={row.player_id} style={{ backgroundColor: idx % 2 === 0 ? '#2A3B35' : '#1B4D3E' }}>
+                    <td style={{ padding: '0.75rem', border: '1px solid #F5E8C7' }}>{idx + 1}</td>
+                    <td style={{ padding: '0.75rem', border: '1px solid #F5E8C7' }}>{row.name}</td>
+                    <td style={{ padding: '0.75rem', border: '1px solid #F5E8C7' }}>{row.totalpoints}</td>
+                    <td style={{ padding: '0.75rem', border: '1px solid #F5E8C7' }}>{row.totalscore}</td>
+                    <td style={{ padding: '0.75rem', border: '1px solid #F5E8C7' }}>{row.eventsplayed}</td>
                   </tr>
                 ))
               )}

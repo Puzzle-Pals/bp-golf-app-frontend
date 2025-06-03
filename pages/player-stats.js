@@ -52,11 +52,11 @@ export default function PlayerStats() {
                   </td>
                 </tr>
               ) : (
-                stats.map(({ player, averageScore, roundsPlayed }, idx) => (
-                  <tr key={idx} style={{ backgroundColor: idx % 2 === 0 ? '#2A3B35' : '#1B4D3E' }}>
-                    <td style={{ padding: '0.75rem', border: '1px solid #F5E8C7' }}>{player}</td>
-                    <td style={{ padding: '0.75rem', border: '1px solid #F5E8C7' }}>{averageScore}</td>
-                    <td style={{ padding: '0.75rem', border: '1px solid #F5E8C7' }}>{roundsPlayed}</td>
+                stats.map((row, idx) => (
+                  <tr key={row.player_id || idx} style={{ backgroundColor: idx % 2 === 0 ? '#2A3B35' : '#1B4D3E' }}>
+                    <td style={{ padding: '0.75rem', border: '1px solid #F5E8C7' }}>{row.name || row.player}</td>
+                    <td style={{ padding: '0.75rem', border: '1px solid #F5E8C7' }}>{row.averagescore || row.averageScore}</td>
+                    <td style={{ padding: '0.75rem', border: '1px solid #F5E8C7' }}>{row.roundsplayed || row.roundsPlayed}</td>
                   </tr>
                 ))
               )}

@@ -1,128 +1,111 @@
-import { useState, useEffect } from 'react';
-import DatePicker from 'react-datepicker';
-import 'react-datepicker/dist/react-datepicker.css';
-
-const TOKEN_KEY = "admin_jwt";
+import React, { useEffect, useState } from 'react';
+import {
+  apiFetch
+} from '../utils/api';
 
 export default function EventManagement() {
   const [events, setEvents] = useState([]);
-  const [newEvent, setNewEvent] = useState({ name: '', date: null, details: '' });
+  const [form, setForm] = useState({ date: '', course: '' });
+  const [editing, setEditing] = useState(null);
   const [error, setError] = useState('');
 
   useEffect(() => {
     fetchEvents();
   }, []);
 
-  const fetchEvents = async () => {
+  async function fetchEvents() {
     try {
-      const res = await fetch('/api/admin/events', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem(TOKEN_KEY)}`,
-        },
-      });
-      if (!res.ok) throw new Error('Failed to fetch');
-      const data = await res.json();
-      setEvents(data.events || data);
+      setEvents(await apiFetch('/events', { admin: true }));
+      setError('');
     } catch (err) {
-      setError('Failed to fetch events');
+      setError(err.message);
     }
-  };
+  }
 
-  const handleSubmit = async (e) => {
+  async function handleAddOrUpdate(e) {
     e.preventDefault();
     try {
-      const formattedDate = newEvent.date ? newEvent.date.toISOString().split('T')[0] : '';
-      const res = await fetch('/api/admin/events', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem(TOKEN_KEY)}`,
-        },
-        body: JSON.stringify({ ...newEvent, date: formattedDate, course: 'Lake of the Sandhills Golf Course' }),
-      });
-      if (!res.ok) throw new Error('Failed to add event');
-      setNewEvent({ name: '', date: null, details: '' });
+      if (editing) {
+        await apiFetch('/events', {
+          method: 'PUT',
+          data: { ...form, id: editing },
+          admin: true,
+        });
+      } else {
+        await apiFetch('/events', {
+          method: 'POST',
+          data: form,
+          admin: true,
+        });
+      }
+      setForm({ date: '', course: '' });
+      setEditing(null);
       fetchEvents();
     } catch (err) {
       setError(err.message);
     }
-  };
+  }
 
-  const handleDelete = async (id) => {
+  function handleEdit(event) {
+    setForm({ date: event.date, course: event.course });
+    setEditing(event.id);
+  }
+
+  async function handleDelete(id) {
+    if (!window.confirm('Delete this event?')) return;
     try {
-      const res = await fetch(`/api/admin/events/${id}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem(TOKEN_KEY)}`,
-        },
-      });
-      if (!res.ok) throw new Error('Failed to delete event');
+      await apiFetch(`/events?id=${id}`, { method: 'DELETE', admin: true });
       fetchEvents();
     } catch (err) {
       setError(err.message);
     }
-  };
+  }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-      <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#3C2F2F' }}>Manage Events</h2>
-      {error && <p style={{ color: '#C71585' }}>{error}</p>}
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        <div>
-          <label style={{ display: 'block', color: '#3C2F2F' }}>Name</label>
-          <input
-            type="text"
-            value={newEvent.name}
-            onChange={(e) => setNewEvent({ ...newEvent, name: e.target.value })}
-            style={{ width: '100%', padding: '0.5rem', border: '1px solid #3C2F2F', borderRadius: '0.25rem' }}
-            required
-          />
-        </div>
-        <div>
-          <label style={{ display: 'block', color: '#3C2F2F' }}>Date</label>
-          <DatePicker
-            selected={newEvent.date}
-            onChange={(date) => setNewEvent({ ...newEvent, date })}
-            style={{ width: '100%', padding: '0.5rem', border: '1px solid #3C2F2F', borderRadius: '0.25rem' }}
-            required
-          />
-        </div>
-        <div>
-          <label style={{ display: 'block', color: '#3C2F2F' }}>Details</label>
-          <textarea
-            value={newEvent.details}
-            onChange={(e) => setNewEvent({ ...newEvent, details: e.target.value })}
-            style={{ width: '100%', padding: '0.5rem', border: '1px solid #3C2F2F', borderRadius: '0.25rem', minHeight: '100px' }}
-            required
-          />
-        </div>
-        <button
-          type="submit"
-          style={{ backgroundColor: '#C71585', color: '#F5E8C7', padding: '0.5rem 1rem', borderRadius: '0.25rem', transition: 'background-color 0.2s, color 0.2s' }}
-          onMouseOver={(e) => { e.target.style.backgroundColor = '#87CEEB'; e.target.style.color = '#3C2F2F'; }}
-          onMouseOut={(e) => { e.target.style.backgroundColor = '#C71585'; e.target.style.color = '#F5E8C7'; }}
-        >
-          Add Event
+    <div className="mb-4">
+      <h3>Event Management</h3>
+      <form onSubmit={handleAddOrUpdate} className="mb-3">
+        <input
+          type="date"
+          value={form.date}
+          onChange={e => setForm(f => ({ ...f, date: e.target.value }))}
+          required
+          className="me-2"
+        />
+        <input
+          placeholder="Course"
+          value={form.course}
+          onChange={e => setForm(f => ({ ...f, course: e.target.value }))}
+          required
+          className="me-2"
+        />
+        <button type="submit" className="btn btn-primary btn-sm me-2">
+          {editing ? 'Update' : 'Add'} Event
         </button>
+        {editing && (
+          <button
+            type="button"
+            className="btn btn-secondary btn-sm"
+            onClick={() => { setEditing(null); setForm({ date: '', course: '' }); }}
+          >
+            Cancel
+          </button>
+        )}
       </form>
-      <div>
-        <h3 style={{ fontSize: '1.25rem', fontWeight: '600', color: '#3C2F2F', marginBottom: '1rem' }}>Existing Events</h3>
-        {events.map((event) => (
-          <div key={event.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#F5E8C7', padding: '1rem', borderRadius: '0.25rem', marginBottom: '0.5rem' }}>
-            <span style={{ color: '#3C2F2F' }}>
-              {event.name} ({event.date}, {event.course}, {event.details})
-            </span>
-            <button
-              onClick={() => handleDelete(event.id)}
-              style={{ backgroundColor: '#C71585', color: '#F5E8C7', padding: '0.25rem 0.5rem', borderRadius: '0.25rem', transition: 'background-color 0.2s, color 0.2s' }}
-              onMouseOver={(e) => { e.target.style.backgroundColor = '#87CEEB'; e.target.style.color = '#3C2F2F'; }}
-              onMouseOut={(e) => { e.target.style.backgroundColor = '#C71585'; e.target.style.color = '#F5E8C7'; }}
-            >
+      {error && <div className="text-danger mb-2">{error}</div>}
+      <ul>
+        {events.map(ev => (
+          <li key={ev.id}>
+            {ev.date} – {ev.course}{' '}
+            <button className="btn btn-link btn-sm" onClick={() => handleEdit(ev)}>
+              Edit
+            </button>
+            <button className="btn btn-link btn-sm text-danger" onClick={() => handleDelete(ev.id)}>
               Delete
             </button>
-          </div>
+          </li>
         ))}
-      </div>
+      </ul>
     </div>
   );
 }

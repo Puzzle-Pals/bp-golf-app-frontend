@@ -1,16 +1,27 @@
-import Link from 'next/link';
+import React, { useEffect, useState } from "react";
+import { fetchEvents } from "../utils/api";
 
-export default function Home() {
+export default function HomePage() {
+  const [events, setEvents] = useState([]);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    fetchEvents()
+      .then(setEvents)
+      .catch((err) => setError(err.message));
+  }, []);
+
   return (
-    <div>
-      <h1>Welcome to BP Golf App</h1>
-      <nav>
-        <ul>
-          <li><Link href="/leaderboard">Leaderboard</Link></li>
-          <li><Link href="/player-stats">Player Stats</Link></li>
-          <li><Link href="/weekly-results">Weekly Results</Link></li>
-        </ul>
-      </nav>
+    <div className="container mt-4">
+      <h1>Upcoming Events</h1>
+      {error && <div className="text-danger">{error}</div>}
+      <ul>
+        {events.map((event) => (
+          <li key={event.id}>
+            {event.date} – {event.course}
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
