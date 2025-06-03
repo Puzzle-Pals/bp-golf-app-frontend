@@ -1,106 +1,27 @@
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
+import EventManagement from "../../components/EventManagement";
+import Link from "next/link";
 
-const TOKEN_KEY = "admin_jwt";
-
-export default function Events() {
-  const [events, setEvents] = useState([]);
-  const [name, setName] = useState('');
-  const [course, setCourse] = useState('Lake of the Sandhills Golf Course');
-  const [date, setDate] = useState('');
-  const [details, setDetails] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const router = useRouter();
-
-  useEffect(() => {
-    const token = typeof window !== "undefined" ? localStorage.getItem(TOKEN_KEY) : null;
-    if (!token) {
-      router.replace('/admin/admin');
-      return;
-    }
-    fetchEvents(token);
-  }, [router]);
-
-  async function fetchEvents(token) {
-    try {
-      const res = await fetch('/api/admin/events', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-      if (!res.ok) throw new Error('Failed to fetch events');
-      const data = await res.json();
-      setEvents(data.events || data);
-    } catch {
-      setError('Failed to fetch events');
-    }
-  }
-
-  async function addEvent() {
-    if (!name.trim() || !date.trim()) return alert('Event name and date are required');
-    setLoading(true);
-    const token = localStorage.getItem(TOKEN_KEY);
-    if (!token) {
-      router.replace('/admin/admin');
-      setLoading(false);
-      return;
-    }
-    try {
-      const res = await fetch('/api/admin/events', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({ name, course, date, details }),
-      });
-      if (!res.ok) throw new Error('Failed to add event');
-      setName('');
-      setDate('');
-      setDetails('');
-      setCourse('Lake of the Sandhills Golf Course');
-      fetchEvents(token);
-    } catch {
-      alert('Error adding event');
-    }
-    setLoading(false);
-  }
-
-  function handleLogout() {
-    localStorage.removeItem(TOKEN_KEY);
-    router.replace('/admin/admin');
-  }
-
+export default function AdminEvents() {
   return (
-    <div style={{ maxWidth: 800, margin: '2rem auto', padding: '0 1rem' }}>
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
-        <button onClick={handleLogout} style={{ padding: '0.5rem 1rem', background: '#C71585', color: '#fff', border: 'none', borderRadius: '0.25rem' }}>
-          Logout
-        </button>
-      </div>
-      <h1>Events</h1>
-      <div style={{ marginBottom: '1rem' }}>
-        <input type="text" placeholder="Event Name" value={name} onChange={(e) => setName(e.target.value)} style={{ padding: '0.5rem', width: '100%', marginBottom: '1rem' }} />
-        <select value={course} onChange={(e) => setCourse(e.target.value)} style={{ padding: '0.5rem', width: '100%', marginBottom: '1rem' }}>
-          <option>Lake of the Sandhills Golf Course</option>
-          <option>Other Course 1</option>
-          <option>Other Course 2</option>
-        </select>
-        <input type="date" value={date} onChange={(e) => setDate(e.target.value)} style={{ padding: '0.5rem', width: '100%', marginBottom: '1rem' }} />
-        <textarea placeholder="Event Details" value={details} onChange={(e) => setDetails(e.target.value)} rows={4} style={{ padding: '0.5rem', width: '100%', marginBottom: '1rem' }} />
-      </div>
-      <button onClick={addEvent} disabled={loading} style={{ padding: '0.5rem 1rem' }}>Add Event</button>
-      <h2 style={{ marginTop: '2rem' }}>Upcoming Events</h2>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      <ul>
-        {events.map((e) => (
-          <li key={e.id}>
-            <strong>{e.name}</strong> on {new Date(e.date).toLocaleDateString()} at {e.course}
-            {e.details && <p>{e.details}</p>}
-          </li>
-        ))}
-      </ul>
+    <div style={{ minHeight: '100vh', backgroundColor: '#1B4D3E', color: '#F5E8C7' }}>
+      <nav style={{ backgroundColor: '#3C2F2F', padding: '1rem', boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Link href="/" style={{ color: '#F5E8C7', fontSize: '1.5rem', fontWeight: 'bold', textDecoration: 'none' }}>
+            BP Men’s League (Admin)
+          </Link>
+          <div style={{ display: 'flex', gap: '1rem' }}>
+            <Link href="/admin/dashboard" style={{ color: '#F5E8C7', textDecoration: 'none' }}>Dashboard</Link>
+            <Link href="/admin/players" style={{ color: '#F5E8C7', textDecoration: 'none' }}>Players</Link>
+            <Link href="/admin/events" style={{ color: '#F5E8C7', textDecoration: 'none' }}>Events</Link>
+            <Link href="/admin/add-week" style={{ color: '#F5E8C7', textDecoration: 'none' }}>Add Week</Link>
+            <Link href="/admin/settings" style={{ color: '#F5E8C7', textDecoration: 'none' }}>Settings</Link>
+            <Link href="/" style={{ color: '#F5E8C7', textDecoration: 'none' }}>Logout</Link>
+          </div>
+        </div>
+      </nav>
+      <main style={{ maxWidth: '1200px', margin: '0 auto', padding: '3rem 1rem' }}>
+        <EventManagement />
+      </main>
     </div>
   );
 }

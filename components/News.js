@@ -1,104 +1,81 @@
-import { useState, useEffect } from 'react';
-import DatePicker from 'react-datepicker';
-import 'react-datepicker/dist/react-datepicker.css';
-
 export default function News() {
-  const [news, setNews] = useState([]);
-  const [newNews, setNewNews] = useState({ date: null, details: '' });
-  const [error, setError] = useState('');
-
-  useEffect(() => { fetchNews(); }, []);
-
-  const fetchNews = async () => {
-    try {
-      setError('');
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/news`);
-      if (!res.ok) throw new Error('Failed to fetch');
-      const data = await res.json();
-      setNews(data);
-    } catch (err) {
-      setError('Failed to fetch news');
-    }
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      setError('');
-      const formattedDate = newNews.date ? newNews.date.toISOString().split('T')[0] : '';
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/news`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ date: formattedDate, details: newNews.details }),
-      });
-      if (!res.ok) throw new Error('Failed to add news');
-      setNewNews({ date: null, details: '' });
-      fetchNews();
-    } catch (err) {
-      setError(err.message);
-    }
-  };
-
-  const handleDelete = async (id) => {
-    if (!window.confirm('Delete this news item?')) return;
-    try {
-      setError('');
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/news/${id}`, {
-        method: 'DELETE',
-      });
-      if (!res.ok) throw new Error('Failed to delete news');
-      fetchNews();
-    } catch (err) {
-      setError(err.message);
-    }
-  };
-
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-      <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#3C2F2F' }}>Manage News</h2>
-      {error && <p style={{ color: '#C71585' }}>{error}</p>}
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        <div>
-          <label style={{ display: 'block', color: '#3C2F2F' }}>Date</label>
-          <DatePicker
-            selected={newNews.date}
-            onChange={(date) => setNewNews({ ...newNews, date })}
-            wrapperClassName="datePicker"
-            popperPlacement="auto"
-            required
-          />
-        </div>
-        <div>
-          <label style={{ display: 'block', color: '#3C2F2F' }}>Details</label>
-          <textarea
-            value={newNews.details}
-            onChange={(e) => setNewNews({ ...newNews, details: e.target.value })}
-            style={{ width: '100%', padding: '0.5rem', border: '1px solid #3C2F2F', borderRadius: '0.25rem', minHeight: '100px' }}
-            required
-          />
-        </div>
-        <button
-          type="submit"
-          style={{ backgroundColor: '#C71585', color: '#F5E8C7', padding: '0.5rem 1rem', borderRadius: '0.25rem', transition: 'background-color 0.2s, color 0.2s' }}
-        >
-          Submit News
+    <div style={{
+      background: '#3C2F2F',
+      borderRadius: '0.5rem',
+      boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+      padding: '2rem',
+      margin: '2rem 0',
+      color: '#F5E8C7'
+    }}>
+      <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1.25rem' }}>League News</h2>
+      <p style={{ marginBottom: '1.5rem' }}>
+        Add, edit, or remove news and updates for the league homepage.
+      </p>
+      <form>
+        <input
+          type="text"
+          placeholder="Headline"
+          style={{
+            width: '100%',
+            padding: 8,
+            borderRadius: 6,
+            border: '1px solid #C71585',
+            background: '#1B4D3E',
+            color: '#F5E8C7',
+            marginBottom: 10
+          }}
+        />
+        <textarea
+          placeholder="News details..."
+          rows={4}
+          style={{
+            width: '100%',
+            padding: 8,
+            borderRadius: 6,
+            border: '1px solid #C71585',
+            background: '#1B4D3E',
+            color: '#F5E8C7',
+            marginBottom: 16
+          }}
+        />
+        <button type="submit" style={{
+          background: '#C71585',
+          color: '#F5E8C7',
+          border: 'none',
+          borderRadius: 4,
+          padding: '0.5rem 1.2rem',
+          fontWeight: 'bold',
+          fontSize: '1rem',
+          cursor: 'pointer'
+        }}>
+          Add News
         </button>
       </form>
-      <div>
-        <h3 style={{ fontSize: '1.25rem', fontWeight: '600', color: '#3C2F2F', marginBottom: '1rem' }}>Existing News</h3>
-        {news.map((item) => (
-          <div key={item.id || item.details + item.date} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#F5E8C7', padding: '1rem', borderRadius: '0.25rem', marginBottom: '0.5rem' }}>
-            <span style={{ color: '#3C2F2F' }}>
-              {item.date}: {item.details}
-            </span>
-            <button
-              onClick={() => handleDelete(item.id)}
-              style={{ backgroundColor: '#C71585', color: '#F5E8C7', padding: '0.25rem 0.5rem', borderRadius: '0.25rem', transition: 'background-color 0.2s, color 0.2s' }}
-            >
-              Delete
-            </button>
+      {/* Example: existing news items */}
+      <div style={{ marginTop: 24 }}>
+        <div style={{
+          background: '#1B4D3E',
+          borderRadius: 4,
+          padding: 12,
+          marginBottom: 12,
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }}>
+          <div>
+            <div style={{ fontWeight: 'bold', color: '#87CEEB' }}>2025-05-30</div>
+            <div>Great start to the season! See leaderboard for results.</div>
           </div>
-        ))}
+          <button style={{
+            background: '#C71585',
+            color: '#F5E8C7',
+            border: 'none',
+            borderRadius: 4,
+            padding: '0.3rem 0.8rem',
+            cursor: 'pointer'
+          }}>Delete</button>
+        </div>
       </div>
     </div>
   );

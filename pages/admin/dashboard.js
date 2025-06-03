@@ -1,53 +1,106 @@
-import { useState } from 'react';
-import Link from 'next/link';
-import PlayerManagement from '../../components/PlayerManagement';
-import EventManagement from '../../components/EventManagement';
-import WeeklyResultsManagement from '../../components/WeeklyResultsManagement';
-import News from '../../components/News';
+import Link from "next/link";
 
 export default function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState('players');
-
-  const tabs = [
-    { id: 'players', label: 'Players', component: <PlayerManagement /> },
-    { id: 'events', label: 'Events', component: <EventManagement /> },
-    { id: 'weeklyResults', label: 'Weekly Results', component: <WeeklyResultsManagement /> },
-    { id: 'news', label: 'News', component: <News /> },
-  ];
-
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#1B4D3E', padding: '2rem' }}>
-      <nav style={{ backgroundColor: '#3C2F2F', padding: '1rem', boxShadow: '0 2px 4px rgba(0,0,0,0.2)', marginBottom: '2rem' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+    <div style={{ minHeight: '100vh', backgroundColor: '#1B4D3E', color: '#F5E8C7' }}>
+      <nav style={{ backgroundColor: '#3C2F2F', padding: '1rem', boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Link href="/" style={{ color: '#F5E8C7', fontSize: '1.5rem', fontWeight: 'bold', textDecoration: 'none' }}>
-            BP Men’s League
+            BP Men’s League (Admin)
           </Link>
+          <div style={{ display: 'flex', gap: '1rem' }}>
+            <Link href="/admin/dashboard" style={{ color: '#F5E8C7', textDecoration: 'none' }}>Dashboard</Link>
+            <Link href="/admin/players" style={{ color: '#F5E8C7', textDecoration: 'none' }}>Players</Link>
+            <Link href="/admin/events" style={{ color: '#F5E8C7', textDecoration: 'none' }}>Events</Link>
+            <Link href="/admin/add-week" style={{ color: '#F5E8C7', textDecoration: 'none' }}>Add Week</Link>
+            <Link href="/admin/settings" style={{ color: '#F5E8C7', textDecoration: 'none' }}>Settings</Link>
+            <Link href="/" style={{ color: '#F5E8C7', textDecoration: 'none' }}>Logout</Link>
+          </div>
         </div>
       </nav>
-      <div style={{ maxWidth: '1200px', margin: '0 auto', backgroundColor: '#F5E8C7', borderRadius: '0.5rem', boxShadow: '0 2px 4px rgba(0,0,0,0.2)', padding: '1.5rem' }}>
-        <h1 style={{ fontSize: '1.875rem', fontWeight: 'bold', color: '#3C2F2F', marginBottom: '1.5rem' }}>Admin Dashboard</h1>
-        <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              style={{
-                padding: '0.5rem 1rem',
+      <main style={{ maxWidth: '1200px', margin: '0 auto', padding: '3rem 1rem', color: '#F5E8C7' }}>
+        <h1 style={{ fontSize: '2.25rem', fontWeight: 'bold', marginBottom: '2rem', letterSpacing: '1px' }}>
+          Admin Dashboard
+        </h1>
+        <div style={{
+          background: '#3C2F2F',
+          borderRadius: '0.5rem',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+          padding: '2rem',
+          margin: '0 auto',
+          maxWidth: 800,
+        }}>
+          <p style={{ color: '#F5E8C7', fontSize: '1.2rem', marginBottom: '1.5rem' }}>
+            Welcome, Admin! Use the links above to manage league data, players, events, and news.
+          </p>
+          <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap', marginTop: '1rem' }}>
+            <Link href="/admin/players" style={{ textDecoration: 'none', flex: '1 1 200px' }}>
+              <div style={{
+                background: '#C71585',
+                color: '#F5E8C7',
                 borderRadius: '0.25rem',
-                backgroundColor: activeTab === tab.id ? '#C71585' : '#3C2F2F',
-                color: activeTab === tab.id ? '#F5E8C7' : '#F5E8C7',
-                border: "none",
-                transition: 'background-color 0.2s, color 0.2s',
-              }}
-              onMouseOver={(e) => { if (activeTab !== tab.id) e.target.style.backgroundColor = '#87CEEB'; e.target.style.color = '#3C2F2F'; }}
-              onMouseOut={(e) => { if (activeTab !== tab.id) e.target.style.backgroundColor = '#3C2F2F'; e.target.style.color = '#F5E8C7'; }}
-            >
-              {tab.label}
-            </button>
-          ))}
+                padding: '1.2rem',
+                fontWeight: 'bold',
+                textAlign: 'center',
+                fontSize: '1.15rem',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                transition: 'background 0.2s, color 0.2s',
+                cursor: 'pointer'
+              }}>
+                Manage Players
+              </div>
+            </Link>
+            <Link href="/admin/events" style={{ textDecoration: 'none', flex: '1 1 200px' }}>
+              <div style={{
+                background: '#C71585',
+                color: '#F5E8C7',
+                borderRadius: '0.25rem',
+                padding: '1.2rem',
+                fontWeight: 'bold',
+                textAlign: 'center',
+                fontSize: '1.15rem',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                transition: 'background 0.2s, color 0.2s',
+                cursor: 'pointer'
+              }}>
+                Manage Events
+              </div>
+            </Link>
+            <Link href="/admin/add-week" style={{ textDecoration: 'none', flex: '1 1 200px' }}>
+              <div style={{
+                background: '#C71585',
+                color: '#F5E8C7',
+                borderRadius: '0.25rem',
+                padding: '1.2rem',
+                fontWeight: 'bold',
+                textAlign: 'center',
+                fontSize: '1.15rem',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                transition: 'background 0.2s, color 0.2s',
+                cursor: 'pointer'
+              }}>
+                Add Weekly Results
+              </div>
+            </Link>
+            <Link href="/admin/settings" style={{ textDecoration: 'none', flex: '1 1 200px' }}>
+              <div style={{
+                background: '#C71585',
+                color: '#F5E8C7',
+                borderRadius: '0.25rem',
+                padding: '1.2rem',
+                fontWeight: 'bold',
+                textAlign: 'center',
+                fontSize: '1.15rem',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                transition: 'background 0.2s, color 0.2s',
+                cursor: 'pointer'
+              }}>
+                League Settings
+              </div>
+            </Link>
+          </div>
         </div>
-        <div>{tabs.find((tab) => tab.id === activeTab)?.component}</div>
-      </div>
+      </main>
     </div>
   );
 }

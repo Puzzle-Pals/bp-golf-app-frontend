@@ -1,42 +1,64 @@
-import { useState, useEffect } from 'react';
-
 export default function PrizePayouts() {
-  const [payouts, setPayouts] = useState({});
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    fetchPayouts();
-    // eslint-disable-next-line
-  }, []);
-
-  const fetchPayouts = async () => {
-    try {
-      setError('');
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/prize_payouts`);
-      if (!res.ok) throw new Error('Failed to fetch payouts');
-      const data = await res.json();
-      setPayouts(data);
-    } catch (err) {
-      setError('Failed to fetch prize payouts');
-    }
-  };
-
   return (
-    <div style={{ margin: '2rem 0' }}>
-      <h3 style={{ color: '#3C2F2F', fontWeight: 'bold', marginBottom: '1rem' }}>Prize Payouts</h3>
-      {error && <p style={{ color: '#C71585' }}>{error}</p>}
-      {payouts.total ? (
-        <div style={{ background: '#F5E8C7', padding: '1rem', borderRadius: '0.25rem', color: '#3C2F2F' }}>
-          <p><strong>Total:</strong> ${payouts.total}</p>
-          <p><strong>Winners (30%):</strong> ${payouts.winners?.amount} {payouts.winners?.players && `to Players ${payouts.winners.players.join(', ')}`}</p>
-          <p><strong>2nd Place (20%):</strong> ${payouts.secondPlace?.amount} {payouts.secondPlace?.players && `to Players ${payouts.secondPlace.players.join(', ')}`}</p>
-          <p><strong>Deuce Pot (20%):</strong> ${payouts.deucePot?.amount} {payouts.deucePot?.players && `to Players ${payouts.deucePot.players.join(', ')}`}</p>
-          <p><strong>Closest to Pin (20%):</strong> ${payouts.closestToPin?.amount} {payouts.closestToPin?.players && `to Player ${payouts.closestToPin.players[0]}`}</p>
-          <p><strong>Highest Score (10%):</strong> ${payouts.highestScore?.amount} {payouts.highestScore?.players && `to Player ${payouts.highestScore.players[0]}`}</p>
-        </div>
-      ) : (
-        <p>No payout data available.</p>
-      )}
+    <div style={{
+      background: '#3C2F2F',
+      borderRadius: '0.5rem',
+      boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+      padding: '2rem',
+      margin: '2rem 0',
+      color: '#F5E8C7'
+    }}>
+      <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1.25rem' }}>Prize Payouts</h2>
+      <p style={{ marginBottom: '1.5rem', color: '#F5E8C7' }}>
+        Manage payout amounts and winners each week.
+      </p>
+      {/* Example table */}
+      <table style={{ width: '100%', background: '#1B4D3E', color: '#F5E8C7', borderRadius: 8, overflow: 'hidden', marginBottom: 16 }}>
+        <thead>
+          <tr>
+            <th style={{ padding: 8, borderBottom: '1px solid #C71585', textAlign: 'left' }}>Week</th>
+            <th style={{ padding: 8, borderBottom: '1px solid #C71585', textAlign: 'left' }}>Winner</th>
+            <th style={{ padding: 8, borderBottom: '1px solid #C71585', textAlign: 'left' }}>Payout</th>
+            <th style={{ padding: 8, borderBottom: '1px solid #C71585', textAlign: 'left' }}>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style={{ padding: 8 }}>Week 1</td>
+            <td style={{ padding: 8 }}>Jane Smith</td>
+            <td style={{ padding: 8 }}>$50</td>
+            <td style={{ padding: 8 }}>
+              <button style={{
+                background: '#C71585',
+                color: '#F5E8C7',
+                border: 'none',
+                borderRadius: 4,
+                padding: '0.3rem 0.8rem',
+                marginRight: 8,
+                cursor: 'pointer'
+              }}>Edit</button>
+              <button style={{
+                background: '#F5E8C7',
+                color: '#C71585',
+                border: 'none',
+                borderRadius: 4,
+                padding: '0.3rem 0.8rem',
+                cursor: 'pointer'
+              }}>Delete</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <button style={{
+        background: '#C71585',
+        color: '#F5E8C7',
+        border: 'none',
+        borderRadius: 4,
+        padding: '0.5rem 1.2rem',
+        fontWeight: 'bold',
+        fontSize: '1rem',
+        cursor: 'pointer'
+      }}>Add New Payout</button>
     </div>
   );
 }
