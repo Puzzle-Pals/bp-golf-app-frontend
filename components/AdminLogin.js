@@ -1,7 +1,6 @@
 import { useState } from 'react';
 
 export default function Adminlogin() {
-  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -14,7 +13,7 @@ export default function Adminlogin() {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ password }),
       });
       if (!res.ok) {
         const data = await res.json();
@@ -33,17 +32,6 @@ export default function Adminlogin() {
       <h2 style={{ color: '#3C2F2F', fontWeight: 'bold', marginBottom: '1rem' }}>Admin Login</h2>
       {error && <p style={{ color: '#C71585' }}>{error}</p>}
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-        <div>
-          <label style={{ color: '#3C2F2F', display: 'block' }}>Username</label>
-          <input
-            type="text"
-            value={username}
-            onChange={e => setUsername(e.target.value)}
-            required
-            style={{ width: '100%', padding: '0.5rem', borderRadius: '0.25rem', border: '1px solid #3C2F2F' }}
-            autoComplete="username"
-          />
-        </div>
         <div>
           <label style={{ color: '#3C2F2F', display: 'block' }}>Password</label>
           <input
