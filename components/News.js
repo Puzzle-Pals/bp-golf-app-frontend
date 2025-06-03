@@ -28,7 +28,7 @@ export default function News() {
       const formattedDate = newNews.date ? newNews.date.toISOString().split('T')[0] : '';
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/news`, {
         method: 'POST',
-        headers: { 'Content-Type': ' 'application/json' },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ date: formattedDate, details: newNews.details }),
       });
       if (!res.ok) throw new Error('Failed to add news');
