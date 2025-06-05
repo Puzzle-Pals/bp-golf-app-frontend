@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import PlayerForm from "./components/PlayerForm";
+import PlayerForm from '../../components/PlayerForm';
 
 export default function PlayersAdmin() {
   const [players, setPlayers] = useState([]);

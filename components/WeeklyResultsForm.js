@@ -26,7 +26,7 @@ export default function WeeklyResultsForm({ players, onSubmit }) {
         required
       >
         <option value="">Select Player</option>
-        {players.map((p) => (
+        {players && players.map((p) => (
           <option key={p.id} value={p.id}>
             {p.first_name} {p.last_name}
           </option>
