@@ -1,281 +1,434 @@
 import { useState } from "react";
 import Link from "next/link";
 
-// Tab icons (simple SVGs for demonstration)
-const icons = {
-  Players: (
-    <svg width="20" height="20" fill="none" style={{ marginRight: 8 }}><circle cx="10" cy="7" r="4" stroke="#20504F" strokeWidth="2"/><rect x="4" y="13" width="12" height="5" rx="2.5" stroke="#20504F" strokeWidth="2"/></svg>
-  ),
-  Events: (
-    <svg width="20" height="20" fill="none" style={{ marginRight: 8 }}><rect x="3" y="5" width="14" height="12" rx="2" stroke="#20504F" strokeWidth="2"/><path d="M7 3v4M13 3v4" stroke="#20504F" strokeWidth="2"/></svg>
-  ),
-  WeeklyResults: (
-    <svg width="20" height="20" fill="none" style={{ marginRight: 8 }}><rect x="4" y="4" width="12" height="12" rx="3" stroke="#20504F" strokeWidth="2"/><path d="M8 12l2-2 2 2" stroke="#20504F" strokeWidth="2"/></svg>
-  ),
-  News: (
-    <svg width="20" height="20" fill="none" style={{ marginRight: 8 }}><rect x="3" y="5" width="14" height="10" rx="2" stroke="#20504F" strokeWidth="2"/><path d="M7 9h6" stroke="#20504F" strokeWidth="2"/></svg>
-  ),
-  Messaging: (
-    <svg width="20" height="20" fill="none" style={{ marginRight: 8 }}><rect x="3" y="4" width="14" height="12" rx="4" stroke="#20504F" strokeWidth="2"/><path d="M7 9h6" stroke="#20504F" strokeWidth="2"/></svg>
-  ),
-  PrizePayouts: (
-    <svg width="20" height="20" fill="none" style={{ marginRight: 8 }}><circle cx="10" cy="10" r="7" stroke="#20504F" strokeWidth="2"/><path d="M7 10h6M10 7v6" stroke="#20504F" strokeWidth="2"/></svg>
-  ),
-  ScoringSystem: (
-    <svg width="20" height="20" fill="none" style={{ marginRight: 8 }}><rect x="4" y="4" width="12" height="12" rx="3" stroke="#20504F" strokeWidth="2"/><circle cx="10" cy="10" r="3" stroke="#20504F" strokeWidth="2"/></svg>
-  ),
-};
+// ---- Player Section ----
+function PlayersCard({ players, setPlayers }) {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [editIdx, setEditIdx] = useState(-1);
 
-// Tab content components
-function PlayersCard() {
+  function handleSave(e) {
+    e.preventDefault();
+    if (!name.trim()) return;
+    if (editIdx >= 0) {
+      const arr = [...players];
+      arr[editIdx] = { name, email };
+      setPlayers(arr.sort((a, b) => a.name.localeCompare(b.name)));
+      setEditIdx(-1);
+    } else {
+      setPlayers([...players, { name, email }].sort((a, b) => a.name.localeCompare(b.name)));
+    }
+    setName(""); setEmail("");
+  }
+  function handleEdit(idx) {
+    setName(players[idx].name);
+    setEmail(players[idx].email);
+    setEditIdx(idx);
+  }
+  function handleDelete(idx) {
+    setPlayers(players.filter((_, i) => i !== idx));
+    if (editIdx === idx) setEditIdx(-1);
+  }
   return (
     <div>
-      <h3 style={{ fontSize: 20, fontWeight: 600, marginBottom: 16, color: "#102A23" }}>Manage Players</h3>
-      <form>
-        <div style={{ marginBottom: 14 }}>
-          <label style={{ display: "block", color: "#30635E", fontWeight: 500, marginBottom: 4 }}>Player Name</label>
-          <input type="text" placeholder="Enter player name"
-                 style={{
-                   width: "100%", padding: 10, borderRadius: 7, border: "1px solid #DDE5E0", background: "#F8FAF9",
-                   color: "#102A23", fontSize: 16, boxShadow: "0 1px 1.5px #e0e0e0" }} />
+      <h3 style={styles.cardTitle}>Manage Players</h3>
+      <form onSubmit={handleSave} style={{ marginBottom: 20 }}>
+        <div style={styles.formRow}>
+          <input
+            type="text"
+            placeholder="Player Name"
+            style={styles.input}
+            value={name}
+            onChange={e => setName(e.target.value)}
+            required
+          />
+          <input
+            type="email"
+            placeholder="Email Address"
+            style={styles.input}
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+          />
+          <button type="submit" style={styles.button}>
+            {editIdx >= 0 ? "Update" : "Add"}
+          </button>
+          {editIdx >= 0 && (
+            <button type="button" onClick={() => { setEditIdx(-1); setName(""); setEmail(""); }} style={styles.cancelButton}>
+              Cancel
+            </button>
+          )}
         </div>
-        <div style={{ marginBottom: 14 }}>
-          <label style={{ display: "block", color: "#30635E", fontWeight: 500, marginBottom: 4 }}>Email Address</label>
-          <input type="email" placeholder="Enter email address"
-                 style={{
-                   width: "100%", padding: 10, borderRadius: 7, border: "1px solid #DDE5E0", background: "#F8FAF9",
-                   color: "#102A23", fontSize: 16, boxShadow: "0 1px 1.5px #e0e0e0" }} />
-        </div>
-        <button type="submit"
-                style={{
-                  background: "linear-gradient(90deg,#29947B,#155853)",
-                  color: "#FFF", border: "none", borderRadius: 6, fontWeight: 600,
-                  padding: "10px 32px", fontSize: 16, marginTop: 10, cursor: "pointer", boxShadow: "0 1px 5px #dbece6"
-                }}>
-          Save Player
-        </button>
       </form>
-    </div>
-  );
-}
-
-function EventsCard() {
-  return (
-    <div>
-      <h3 style={{ fontSize: 20, fontWeight: 600, marginBottom: 16, color: "#102A23" }}>Manage Events</h3>
-      <form>
-        <div style={{ marginBottom: 14 }}>
-          <label style={{ display: "block", color: "#30635E", fontWeight: 500, marginBottom: 4 }}>Event Name</label>
-          <input type="text" placeholder="Enter event name"
-                 style={{
-                   width: "100%", padding: 10, borderRadius: 7, border: "1px solid #DDE5E0", background: "#F8FAF9",
-                   color: "#102A23", fontSize: 16, boxShadow: "0 1px 1.5px #e0e0e0" }} />
-        </div>
-        <div style={{ marginBottom: 14 }}>
-          <label style={{ display: "block", color: "#30635E", fontWeight: 500, marginBottom: 4 }}>Date</label>
-          <input type="date" style={{
-            width: "100%", padding: 10, borderRadius: 7, border: "1px solid #DDE5E0", background: "#F8FAF9",
-            color: "#102A23", fontSize: 16, boxShadow: "0 1px 1.5px #e0e0e0" }} />
-        </div>
-        <button type="submit"
-                style={{
-                  background: "linear-gradient(90deg,#29947B,#155853)",
-                  color: "#FFF", border: "none", borderRadius: 6, fontWeight: 600,
-                  padding: "10px 32px", fontSize: 16, marginTop: 10, cursor: "pointer", boxShadow: "0 1px 5px #dbece6"
-                }}>
-          Save Event
-        </button>
-      </form>
-    </div>
-  );
-}
-
-function WeeklyResultsCard() {
-  return (
-    <div>
-      <h3 style={{ fontSize: 20, fontWeight: 600, marginBottom: 16, color: "#102A23" }}>Manage Weekly Results</h3>
-      <form>
-        <div style={{ marginBottom: 14 }}>
-          <label style={{ display: "block", color: "#30635E", fontWeight: 500, marginBottom: 4 }}>Week #</label>
-          <input type="number" min={1} placeholder="Week number"
-                 style={{
-                   width: "100%", padding: 10, borderRadius: 7, border: "1px solid #DDE5E0", background: "#F8FAF9",
-                   color: "#102A23", fontSize: 16, boxShadow: "0 1px 1.5px #e0e0e0" }} />
-        </div>
-        <div style={{ marginBottom: 14 }}>
-          <label style={{ display: "block", color: "#30635E", fontWeight: 500, marginBottom: 4 }}>Winner Name</label>
-          <input type="text" placeholder="Winner"
-                 style={{
-                   width: "100%", padding: 10, borderRadius: 7, border: "1px solid #DDE5E0", background: "#F8FAF9",
-                   color: "#102A23", fontSize: 16, boxShadow: "0 1px 1.5px #e0e0e0" }} />
-        </div>
-        <button type="submit"
-                style={{
-                  background: "linear-gradient(90deg,#29947B,#155853)",
-                  color: "#FFF", border: "none", borderRadius: 6, fontWeight: 600,
-                  padding: "10px 32px", fontSize: 16, marginTop: 10, cursor: "pointer", boxShadow: "0 1px 5px #dbece6"
-                }}>
-          Save Result
-        </button>
-      </form>
-    </div>
-  );
-}
-
-function NewsCard() {
-  return (
-    <div>
-      <h3 style={{ fontSize: 20, fontWeight: 600, marginBottom: 16, color: "#102A23" }}>Post League News</h3>
-      <form>
-        <div style={{ marginBottom: 14 }}>
-          <label style={{ display: "block", color: "#30635E", fontWeight: 500, marginBottom: 4 }}>Headline</label>
-          <input type="text" placeholder="Headline"
-                 style={{
-                   width: "100%", padding: 10, borderRadius: 7, border: "1px solid #DDE5E0", background: "#F8FAF9",
-                   color: "#102A23", fontSize: 16, boxShadow: "0 1px 1.5px #e0e0e0" }} />
-        </div>
-        <div style={{ marginBottom: 14 }}>
-          <label style={{ display: "block", color: "#30635E", fontWeight: 500, marginBottom: 4 }}>News Body</label>
-          <textarea rows={3} placeholder="Type news details..."
-                    style={{
-                      width: "100%", padding: 10, borderRadius: 7, border: "1px solid #DDE5E0", background: "#F8FAF9",
-                      color: "#102A23", fontSize: 16, boxShadow: "0 1px 1.5px #e0e0e0", resize: "vertical" }} />
-        </div>
-        <button type="submit"
-                style={{
-                  background: "linear-gradient(90deg,#29947B,#155853)",
-                  color: "#FFF", border: "none", borderRadius: 6, fontWeight: 600,
-                  padding: "10px 32px", fontSize: 16, marginTop: 10, cursor: "pointer", boxShadow: "0 1px 5px #dbece6"
-                }}>
-          Post News
-        </button>
-      </form>
-    </div>
-  );
-}
-
-function MessagingCard() {
-  return (
-    <div>
-      <h3 style={{ fontSize: 20, fontWeight: 600, marginBottom: 16, color: "#102A23" }}>Send Announcement</h3>
-      <form>
-        <div style={{ marginBottom: 14 }}>
-          <label style={{ display: "block", color: "#30635E", fontWeight: 500, marginBottom: 4 }}>Message to Players</label>
-          <textarea rows={3} placeholder="Type your message here..."
-                    style={{
-                      width: "100%", padding: 10, borderRadius: 7, border: "1px solid #DDE5E0", background: "#F8FAF9",
-                      color: "#102A23", fontSize: 16, boxShadow: "0 1px 1.5px #e0e0e0", resize: "vertical" }} />
-        </div>
-        <button type="submit"
-                style={{
-                  background: "linear-gradient(90deg,#29947B,#155853)",
-                  color: "#FFF", border: "none", borderRadius: 6, fontWeight: 600,
-                  padding: "10px 32px", fontSize: 16, marginTop: 10, cursor: "pointer", boxShadow: "0 1px 5px #dbece6"
-                }}>
-          Send Message
-        </button>
-      </form>
-    </div>
-  );
-}
-
-function PrizePayoutsCard() {
-  return (
-    <div>
-      <h3 style={{ fontSize: 20, fontWeight: 600, marginBottom: 16, color: "#102A23" }}>Prize Payouts</h3>
-      <form>
-        <div style={{ marginBottom: 14 }}>
-          <label style={{ display: "block", color: "#30635E", fontWeight: 500, marginBottom: 4 }}>Week #</label>
-          <input type="number" placeholder="Week #"
-                 style={{
-                   width: "100%", padding: 10, borderRadius: 7, border: "1px solid #DDE5E0", background: "#F8FAF9",
-                   color: "#102A23", fontSize: 16, boxShadow: "0 1px 1.5px #e0e0e0" }} />
-        </div>
-        <div style={{ marginBottom: 14 }}>
-          <label style={{ display: "block", color: "#30635E", fontWeight: 500, marginBottom: 4 }}>Winner Name</label>
-          <input type="text" placeholder="Winner"
-                 style={{
-                   width: "100%", padding: 10, borderRadius: 7, border: "1px solid #DDE5E0", background: "#F8FAF9",
-                   color: "#102A23", fontSize: 16, boxShadow: "0 1px 1.5px #e0e0e0" }} />
-        </div>
-        <div style={{ marginBottom: 14 }}>
-          <label style={{ display: "block", color: "#30635E", fontWeight: 500, marginBottom: 4 }}>Payout Amount</label>
-          <input type="number" placeholder="Payout $"
-                 style={{
-                   width: "100%", padding: 10, borderRadius: 7, border: "1px solid #DDE5E0", background: "#F8FAF9",
-                   color: "#102A23", fontSize: 16, boxShadow: "0 1px 1.5px #e0e0e0" }} />
-        </div>
-        <button type="submit"
-                style={{
-                  background: "linear-gradient(90deg,#29947B,#155853)",
-                  color: "#FFF", border: "none", borderRadius: 6, fontWeight: 600,
-                  padding: "10px 32px", fontSize: 16, marginTop: 10, cursor: "pointer", boxShadow: "0 1px 5px #dbece6"
-                }}>
-          Save Payout
-        </button>
-      </form>
-    </div>
-  );
-}
-
-function ScoringSystemCard() {
-  const [system, setSystem] = useState("Standard");
-  return (
-    <div>
-      <h3 style={{ fontSize: 20, fontWeight: 600, marginBottom: 16, color: "#102A23" }}>Scoring System</h3>
-      <div style={{ marginBottom: 14 }}>
-        <span style={{ color: "#20504F", fontWeight: 600 }}>Current System:</span>{" "}
-        <span style={{ color: "#155853", fontWeight: 700 }}>{system}</span>
-      </div>
-      <div style={{ display: "flex", gap: "1rem", marginBottom: 16 }}>
-        <button
-          type="button"
-          onClick={() => setSystem("Standard")}
-          style={{
-            background: system === "Standard" ? "linear-gradient(90deg,#29947B,#155853)" : "#F8FAF9",
-            color: system === "Standard" ? "#FFF" : "#20504F",
-            border: "1px solid #20504F",
-            borderRadius: 6,
-            padding: "10px 32px",
-            fontWeight: "bold",
-            cursor: "pointer",
-            fontSize: 16,
-          }}
-        >
-          Standard
-        </button>
-        <button
-          type="button"
-          onClick={() => setSystem("Handicap")}
-          style={{
-            background: system === "Handicap" ? "linear-gradient(90deg,#29947B,#155853)" : "#F8FAF9",
-            color: system === "Handicap" ? "#FFF" : "#20504F",
-            border: "1px solid #20504F",
-            borderRadius: 6,
-            padding: "10px 32px",
-            fontWeight: "bold",
-            cursor: "pointer",
-            fontSize: 16,
-          }}
-        >
-          Handicap
-        </button>
+      <div>
+        <h4 style={{ margin: "16px 0 8px", color: "#30635E", fontWeight: 500 }}>Players List</h4>
+        {players.length === 0 && <div style={{ color: "#9CA7A0" }}>No players yet.</div>}
+        <ul style={{ padding: 0, listStyle: "none", margin: 0 }}>
+          {players.map((p, i) => (
+            <li key={p.name + p.email} style={styles.listRow}>
+              <span>{p.name} <span style={{ color: "#A0A0A0" }}>({p.email})</span></span>
+              <span>
+                <button onClick={() => handleEdit(i)} style={styles.smallBtn}>Edit</button>
+                <button onClick={() => handleDelete(i)} style={styles.smallBtnDelete}>Delete</button>
+              </span>
+            </li>
+          ))}
+        </ul>
       </div>
     </div>
   );
 }
 
-// Main
+// ---- Events Section ----
+function EventsCard({ events, setEvents }) {
+  const [name, setName] = useState("");
+  const [date, setDate] = useState("");
+  const [details, setDetails] = useState("");
+  const [editIdx, setEditIdx] = useState(-1);
+
+  function handleSave(e) {
+    e.preventDefault();
+    if (!name.trim()) return;
+    if (editIdx >= 0) {
+      const arr = [...events];
+      arr[editIdx] = { name, date, details };
+      setEvents(arr);
+      setEditIdx(-1);
+    } else {
+      setEvents([...events, { name, date, details }]);
+    }
+    setName(""); setDate(""); setDetails("");
+  }
+  function handleEdit(idx) {
+    setName(events[idx].name);
+    setDate(events[idx].date);
+    setDetails(events[idx].details);
+    setEditIdx(idx);
+  }
+  function handleDelete(idx) {
+    setEvents(events.filter((_, i) => i !== idx));
+    if (editIdx === idx) setEditIdx(-1);
+  }
+  return (
+    <div>
+      <h3 style={styles.cardTitle}>Manage Events</h3>
+      <form onSubmit={handleSave} style={{ marginBottom: 20 }}>
+        <div style={styles.formRow}>
+          <input
+            type="text"
+            placeholder="Event Name"
+            style={styles.input}
+            value={name}
+            onChange={e => setName(e.target.value)}
+            required
+          />
+          <input
+            type="date"
+            style={styles.input}
+            value={date}
+            onChange={e => setDate(e.target.value)}
+          />
+        </div>
+        <textarea
+          placeholder="Event Details"
+          style={styles.input + " resize:vertical; min-height:38px;"}
+          value={details}
+          onChange={e => setDetails(e.target.value)}
+        />
+        <div>
+          <button type="submit" style={styles.button}>
+            {editIdx >= 0 ? "Update" : "Add"}
+          </button>
+          {editIdx >= 0 && (
+            <button type="button" onClick={() => { setEditIdx(-1); setName(""); setDate(""); setDetails(""); }} style={styles.cancelButton}>
+              Cancel
+            </button>
+          )}
+        </div>
+      </form>
+      <div>
+        <h4 style={{ margin: "16px 0 8px", color: "#30635E", fontWeight: 500 }}>Events List</h4>
+        {events.length === 0 && <div style={{ color: "#9CA7A0" }}>No events yet.</div>}
+        <ul style={{ padding: 0, listStyle: "none", margin: 0 }}>
+          {events.map((ev, i) => (
+            <li key={ev.name + ev.date} style={styles.listRow}>
+              <span>
+                <b>{ev.name}</b> <span style={{ color: "#A0A0A0" }}>({ev.date})</span>
+                <br />
+                <span style={{ color: "#30635E", fontSize: 14 }}>{ev.details}</span>
+              </span>
+              <span>
+                <button onClick={() => handleEdit(i)} style={styles.smallBtn}>Edit</button>
+                <button onClick={() => handleDelete(i)} style={styles.smallBtnDelete}>Delete</button>
+              </span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  );
+}
+
+// ---- Weekly Results Section ----
+function WeeklyResultsCard({ players, weeklyResults, setWeeklyResults }) {
+  const [weekNum, setWeekNum] = useState("");
+  const [wins, setWins] = useState("");
+  const [second, setSecond] = useState("");
+  const [highScore, setHighScore] = useState("");
+  const [deuce, setDeuce] = useState("");
+  const [ctp, setCtp] = useState("");
+  const [editIdx, setEditIdx] = useState(-1);
+
+  function handleSave(e) {
+    e.preventDefault();
+    if (!weekNum) return;
+    const entry = { weekNum, wins, second, highScore, deuce, ctp };
+    if (editIdx >= 0) {
+      const arr = [...weeklyResults];
+      arr[editIdx] = entry;
+      setWeeklyResults(arr);
+      setEditIdx(-1);
+    } else {
+      setWeeklyResults([...weeklyResults, entry]);
+    }
+    setWeekNum(""); setWins(""); setSecond(""); setHighScore(""); setDeuce(""); setCtp("");
+  }
+  function handleEdit(idx) {
+    const w = weeklyResults[idx];
+    setWeekNum(w.weekNum);
+    setWins(w.wins);
+    setSecond(w.second);
+    setHighScore(w.highScore);
+    setDeuce(w.deuce);
+    setCtp(w.ctp);
+    setEditIdx(idx);
+  }
+  function handleDelete(idx) {
+    setWeeklyResults(weeklyResults.filter((_, i) => i !== idx));
+    if (editIdx === idx) setEditIdx(-1);
+  }
+  return (
+    <div>
+      <h3 style={styles.cardTitle}>Weekly Results</h3>
+      <form onSubmit={handleSave} style={{ marginBottom: 20 }}>
+        <div style={styles.formRow}>
+          <input
+            type="number"
+            placeholder="Week #"
+            style={styles.input}
+            value={weekNum}
+            onChange={e => setWeekNum(e.target.value)}
+            required
+            min={1}
+          />
+          <select style={styles.input} value={wins} onChange={e => setWins(e.target.value)} required>
+            <option value="">Winner</option>
+            {players.map(p => (
+              <option key={"w" + p.name} value={p.name}>{p.name}</option>
+            ))}
+          </select>
+          <select style={styles.input} value={second} onChange={e => setSecond(e.target.value)}>
+            <option value="">2nd Place</option>
+            {players.map(p => (
+              <option key={"2" + p.name} value={p.name}>{p.name}</option>
+            ))}
+          </select>
+        </div>
+        <div style={styles.formRow}>
+          <select style={styles.input} value={highScore} onChange={e => setHighScore(e.target.value)}>
+            <option value="">Highest Score</option>
+            {players.map(p => (
+              <option key={"h" + p.name} value={p.name}>{p.name}</option>
+            ))}
+          </select>
+          <select style={styles.input} value={deuce} onChange={e => setDeuce(e.target.value)}>
+            <option value="">Deuce Pot Wins</option>
+            {players.map(p => (
+              <option key={"d" + p.name} value={p.name}>{p.name}</option>
+            ))}
+          </select>
+          <select style={styles.input} value={ctp} onChange={e => setCtp(e.target.value)}>
+            <option value="">Closest to Pin</option>
+            {players.map(p => (
+              <option key={"c" + p.name} value={p.name}>{p.name}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <button type="submit" style={styles.button}>
+            {editIdx >= 0 ? "Update" : "Add"}
+          </button>
+          {editIdx >= 0 && (
+            <button type="button" onClick={() => {
+              setEditIdx(-1); setWeekNum(""); setWins(""); setSecond(""); setHighScore(""); setDeuce(""); setCtp("");
+            }} style={styles.cancelButton}>
+              Cancel
+            </button>
+          )}
+        </div>
+      </form>
+      <div>
+        <h4 style={{ margin: "16px 0 8px", color: "#30635E", fontWeight: 500 }}>Weekly Results List</h4>
+        {weeklyResults.length === 0 && <div style={{ color: "#9CA7A0" }}>No results yet.</div>}
+        <ul style={{ padding: 0, listStyle: "none", margin: 0 }}>
+          {weeklyResults
+            .slice()
+            .sort((a, b) => Number(a.weekNum) - Number(b.weekNum))
+            .map((w, i) => (
+            <li key={w.weekNum + w.wins} style={styles.listRow}>
+              <span>
+                <b>Week {w.weekNum}</b>: 
+                <span style={{ marginLeft: 10 }}>
+                  Winner: {w.wins || "-"}, 2nd: {w.second || "-"}, High Score: {w.highScore || "-"}, Deuce: {w.deuce || "-"}, CTP: {w.ctp || "-"}
+                </span>
+              </span>
+              <span>
+                <button onClick={() => handleEdit(i)} style={styles.smallBtn}>Edit</button>
+                <button onClick={() => handleDelete(i)} style={styles.smallBtnDelete}>Delete</button>
+              </span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  );
+}
+
+// ---- News Section ----
+function NewsCard({ news, setNews }) {
+  const [headline, setHeadline] = useState("");
+  const [body, setBody] = useState("");
+  const [editIdx, setEditIdx] = useState(-1);
+
+  function handleSave(e) {
+    e.preventDefault();
+    if (!headline.trim()) return;
+    if (editIdx >= 0) {
+      const arr = [...news];
+      arr[editIdx] = { headline, body };
+      setNews(arr);
+      setEditIdx(-1);
+    } else {
+      setNews([...news, { headline, body }]);
+    }
+    setHeadline(""); setBody("");
+  }
+  function handleEdit(idx) {
+    setHeadline(news[idx].headline);
+    setBody(news[idx].body);
+    setEditIdx(idx);
+  }
+  function handleDelete(idx) {
+    setNews(news.filter((_, i) => i !== idx));
+    if (editIdx === idx) setEditIdx(-1);
+  }
+  return (
+    <div>
+      <h3 style={styles.cardTitle}>Post League News</h3>
+      <form onSubmit={handleSave} style={{ marginBottom: 20 }}>
+        <div style={styles.formRow}>
+          <input
+            type="text"
+            placeholder="Headline"
+            style={styles.input}
+            value={headline}
+            onChange={e => setHeadline(e.target.value)}
+            required
+          />
+        </div>
+        <textarea
+          placeholder="News details"
+          style={styles.input + " resize:vertical; min-height:38px;"}
+          value={body}
+          onChange={e => setBody(e.target.value)}
+        />
+        <div>
+          <button type="submit" style={styles.button}>
+            {editIdx >= 0 ? "Update" : "Add"}
+          </button>
+          {editIdx >= 0 && (
+            <button type="button" onClick={() => { setEditIdx(-1); setHeadline(""); setBody(""); }} style={styles.cancelButton}>
+              Cancel
+            </button>
+          )}
+        </div>
+      </form>
+      <div>
+        <h4 style={{ margin: "16px 0 8px", color: "#30635E", fontWeight: 500 }}>News List</h4>
+        {news.length === 0 && <div style={{ color: "#9CA7A0" }}>No news yet.</div>}
+        <ul style={{ padding: 0, listStyle: "none", margin: 0 }}>
+          {news.map((item, i) => (
+            <li key={item.headline + i} style={styles.listRow}>
+              <span>
+                <b>{item.headline}</b><br />
+                <span style={{ fontSize: 14 }}>{item.body}</span>
+              </span>
+              <span>
+                <button onClick={() => handleEdit(i)} style={styles.smallBtn}>Edit</button>
+                <button onClick={() => handleDelete(i)} style={styles.smallBtnDelete}>Delete</button>
+              </span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  );
+}
+
+// ---- Messaging Section ----
+function MessagingCard({ messages, setMessages }) {
+  const [msg, setMsg] = useState("");
+  function handleSend(e) {
+    e.preventDefault();
+    if (!msg.trim()) return;
+    setMessages([...messages, { msg, date: new Date().toLocaleString() }]);
+    setMsg("");
+  }
+  return (
+    <div>
+      <h3 style={styles.cardTitle}>Send Announcement</h3>
+      <form onSubmit={handleSend} style={{ marginBottom: 20 }}>
+        <div style={styles.formRow}>
+          <textarea
+            placeholder="Type your message..."
+            style={styles.input + " resize:vertical; min-height:38px;"}
+            value={msg}
+            onChange={e => setMsg(e.target.value)}
+          />
+          <button type="submit" style={styles.button}>Send</button>
+        </div>
+      </form>
+      <div>
+        <h4 style={{ margin: "16px 0 8px", color: "#30635E", fontWeight: 500 }}>Sent Announcements</h4>
+        {messages.length === 0 && <div style={{ color: "#9CA7A0" }}>No messages yet.</div>}
+        <ul style={{ padding: 0, listStyle: "none", margin: 0 }}>
+          {messages.map((item, i) => (
+            <li key={item.msg + item.date} style={styles.listRow}>
+              <span>
+                <b>{item.msg}</b> <span style={{ color: "#B0B0B0", fontSize: 13 }}>({item.date})</span>
+              </span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  );
+}
+
+// ---- Main Admin Dashboard ----
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("Players");
+  const [players, setPlayers] = useState([]);
+  const [events, setEvents] = useState([]);
+  const [weeklyResults, setWeeklyResults] = useState([]);
+  const [news, setNews] = useState([]);
+  const [messages, setMessages] = useState([]);
+
   const tabs = [
-    { key: "Players", label: "Players", body: <PlayersCard /> },
-    { key: "Events", label: "Events", body: <EventsCard /> },
-    { key: "WeeklyResults", label: "Weekly Results", body: <WeeklyResultsCard /> },
-    { key: "News", label: "News", body: <NewsCard /> },
-    { key: "Messaging", label: "Messaging", body: <MessagingCard /> },
-    { key: "PrizePayouts", label: "Prize Payouts", body: <PrizePayoutsCard /> },
-    { key: "ScoringSystem", label: "Scoring System", body: <ScoringSystemCard /> },
+    { key: "Players", label: "Players", body: <PlayersCard players={players} setPlayers={setPlayers} /> },
+    { key: "Events", label: "Events", body: <EventsCard events={events} setEvents={setEvents} /> },
+    { key: "WeeklyResults", label: "Weekly Results", body: <WeeklyResultsCard players={players} weeklyResults={weeklyResults} setWeeklyResults={setWeeklyResults} /> },
+    { key: "News", label: "News", body: <NewsCard news={news} setNews={setNews} /> },
+    { key: "Messaging", label: "Messaging", body: <MessagingCard messages={messages} setMessages={setMessages} /> },
   ];
 
   return (
@@ -285,15 +438,15 @@ export default function AdminDashboard() {
         <div style={{
           maxWidth: "1200px", margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center"
         }}>
-          <Link href="/" style={{ color: "#F5E8C7", fontSize: "1.5rem", fontWeight: "bold", textDecoration: "none", letterSpacing: 0.5 }}>
+          <div style={{ color: "#F5E8C7", fontSize: "1.5rem", fontWeight: "bold", letterSpacing: 0.5 }}>
             BP Men’s League (Admin)
-          </Link>
+          </div>
           <div style={{ display: "flex", gap: "1.5rem" }}>
             <Link href="/" style={{ color: "#F5E8C7", textDecoration: "none" }}>Home</Link>
-            <Link href="/leaderboard" style={{ color: "#F5E8C7", textDecoration: "none" }}>Leaderboard</Link>
-            <Link href="/player-stats" style={{ color: "#F5E8C7", textDecoration: "none" }}>Player Stats</Link>
-            <Link href="/weekly-results" style={{ color: "#F5E8C7", textDecoration: "none" }}>Weekly Results</Link>
-            <Link href="/news" style={{ color: "#F5E8C7", textDecoration: "none" }}>News</Link>
+            <a href="/leaderboard" target="_blank" rel="noopener noreferrer" style={{ color: "#F5E8C7", textDecoration: "none" }}>Leaderboard</a>
+            <a href="/player-stats" target="_blank" rel="noopener noreferrer" style={{ color: "#F5E8C7", textDecoration: "none" }}>Player Stats</a>
+            <a href="/weekly-results" target="_blank" rel="noopener noreferrer" style={{ color: "#F5E8C7", textDecoration: "none" }}>Weekly Results</a>
+            <a href="/news" target="_blank" rel="noopener noreferrer" style={{ color: "#F5E8C7", textDecoration: "none" }}>News</a>
             <Link href="/admin" style={{
               color: "#F5E8C7", textDecoration: "none", fontWeight: "bold", borderBottom: "2px solid #DDE5E0"
             }}>Admin</Link>
@@ -304,7 +457,6 @@ export default function AdminDashboard() {
         <h1 style={{ fontSize: "2.25rem", fontWeight: "bold", marginBottom: "2.5rem", letterSpacing: "1px", color: "#20504F" }}>
           Admin Dashboard
         </h1>
-        {/* Tab bar */}
         <div style={{
           display: "flex", gap: "0.5rem", marginBottom: "2.5rem", borderBottom: "2px solid #E0E7E4",
           overflowX: "auto", scrollbarWidth: "none", msOverflowStyle: "none"
@@ -322,17 +474,12 @@ export default function AdminDashboard() {
                 fontSize: 16,
                 padding: "1rem 1.5rem 0.75rem 1.2rem",
                 cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                boxShadow: activeTab === tab.key ? "0 2px 12px #DDE5E0" : "none",
                 borderRadius: "12px 12px 0 0"
               }}>
-              {icons[tab.key]}
               {tab.label}
             </button>
           ))}
         </div>
-        {/* Card */}
         <section style={{
           background: "#fff",
           borderRadius: "1.5rem",
@@ -348,3 +495,31 @@ export default function AdminDashboard() {
     </div>
   );
 }
+
+// ---- Styles ----
+const styles = {
+  cardTitle: { fontSize: 20, fontWeight: 600, marginBottom: 16, color: "#102A23" },
+  formRow: { display: "flex", gap: 12, marginBottom: 10, flexWrap: "wrap" },
+  input: "flex:1 1 100px; font-size:16px; padding:10px; border-radius:7px; border:1px solid #DDE5E0; background:#F8FAF9; color:#102A23; box-shadow:0 1px 1.5px #e0e0e0; margin-bottom:0; ",
+  button: {
+    background: "linear-gradient(90deg,#29947B,#155853)",
+    color: "#FFF", border: "none", borderRadius: 6, fontWeight: 600,
+    padding: "10px 32px", fontSize: 16, cursor: "pointer", marginRight: 8, boxShadow: "0 1px 5px #dbece6"
+  },
+  cancelButton: {
+    background: "#fff", color: "#20504F", border: "1px solid #DDE5E0", borderRadius: 6, fontWeight: 500,
+    padding: "10px 20px", fontSize: 16, cursor: "pointer", marginLeft: 8
+  },
+  listRow: {
+    display: "flex", alignItems: "center", justifyContent: "space-between",
+    padding: "8px 0", borderBottom: "1px solid #F2F5F4"
+  },
+  smallBtn: {
+    background: "#E5F3EF", color: "#20504F", border: "1px solid #DDE5E0", borderRadius: 5, fontWeight: 500,
+    padding: "4px 14px", fontSize: 14, cursor: "pointer", marginRight: 8
+  },
+  smallBtnDelete: {
+    background: "#F9E8E8", color: "#B90000", border: "1px solid #E2BDBD", borderRadius: 5, fontWeight: 500,
+    padding: "4px 14px", fontSize: 14, cursor: "pointer"
+  }
+};
