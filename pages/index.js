@@ -1,120 +1,177 @@
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
+import { useState, useEffect } from "react";
+import Link from "next/link";
 
-export default function Home() {
-  const [news, setNews] = useState([]);
-  const [events, setEvents] = useState([]);
-  const [newsError, setNewsError] = useState('');
-  const [eventsError, setEventsError] = useState('');
+export default function AdminDashboard() {
+  const [authenticated, setAuthenticated] = useState(false);
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [selectedTab, setSelectedTab] = useState("dashboard");
 
+  // Check for token on mount
   useEffect(() => {
-    const fetchNews = async () => {
-      try {
-        const res = await fetch('/api/news');
-        if (!res.ok) throw new Error('Failed to fetch news');
-        const data = await res.json();
-        setNews(data);
-      } catch {
-        setNewsError('Failed to fetch news');
-      }
-    };
-    const fetchEvents = async () => {
-      try {
-        const res = await fetch('/api/events');
-        if (!res.ok) throw new Error('Failed to fetch events');
-        const data = await res.json();
-        setEvents(data);
-      } catch {
-        setEventsError('Failed to fetch events');
-      }
-    };
-    fetchNews();
-    fetchEvents();
+    if (typeof window !== "undefined") {
+      const token = localStorage.getItem("adminToken");
+      if (token) setAuthenticated(true);
+    }
   }, []);
 
-  return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#1B4D3E', color: '#F5E8C7' }}>
-      <nav style={{ backgroundColor: '#3C2F2F', padding: '1rem', boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>
-        <div style={{
-          maxWidth: '1200px',
-          margin: '0 auto',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center'
-        }}>
-          <Link href="/" style={{
-            color: '#F5E8C7',
-            fontSize: '1.5rem',
-            fontWeight: 'bold',
-            textDecoration: 'none'
-          }}>
-            BP Men’s League
-          </Link>
-          <div style={{ display: 'flex', gap: '1rem' }}>
-            <Link href="/weekly-results" style={{ color: '#F5E8C7', textDecoration: 'none' }}>Weekly Results</Link>
-            <Link href="/player-stats" style={{ color: '#F5E8C7', textDecoration: 'none' }}>Player Stats</Link>
-            <Link href="/leaderboard" style={{ color: '#F5E8C7', textDecoration: 'none' }}>Leaderboard</Link>
+  async function handleLogin(e) {
+    e.preventDefault();
+    setError("");
+    const res = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password }),
+    });
+    if (res.ok) {
+      const { token } = await res.json();
+      localStorage.setItem("adminToken", token);
+      setAuthenticated(true);
+      setPassword("");
+    } else {
+      const { error } = await res.json();
+      setError(error || "Login failed");
+    }
+  }
+
+  function handleLogout() {
+    localStorage.removeItem("adminToken");
+    setAuthenticated(false);
+    setPassword("");
+    setSelectedTab("dashboard");
+  }
+
+  const cardStyle = {
+    background: "#fff",
+    borderRadius: "1rem",
+    boxShadow: "0 4px 16px rgba(0,0,0,0.10)",
+    maxWidth: 600,
+    margin: "48px auto",
+    padding: "2rem 2rem 1.5rem 2rem"
+  };
+  const tabsStyle = {
+    display: "flex",
+    borderBottom: "1px solid #eee",
+    marginBottom: "1.25rem"
+  };
+  const tabStyle = (active) => ({
+    cursor: "pointer",
+    fontWeight: active ? 700 : 400,
+    color: active ? "#00b894" : "#444",
+    borderBottom: active ? "2px solid #00b894" : "2px solid transparent",
+    padding: "0.75rem 1.5rem",
+    background: "none",
+    outline: "none"
+  });
+  const logoutStyle = {
+    background: "#fab1a0",
+    color: "#222",
+    border: "none",
+    borderRadius: "0.5rem",
+    padding: "0.4rem 1.1rem",
+    marginLeft: 8,
+    cursor: "pointer"
+  };
+
+  function renderTab() {
+    switch (selectedTab) {
+      case "dashboard":
+        return (
+          <div>
+            <h2>Admin Dashboard</h2>
+            <ul>
+              <li><Link href="/admin/players">Manage Players</Link></li>
+              <li><Link href="/admin/add-week">Add Weekly Results</Link></li>
+              <li><Link href="/admin/events">Manage Events</Link></li>
+            </ul>
           </div>
-        </div>
-      </nav>
-      <main style={{ maxWidth: '1200px', margin: '0 auto', padding: '3rem 1rem', color: '#F5E8C7' }}>
-        <h1 style={{
-          fontSize: '2.25rem',
-          fontWeight: 'bold',
-          marginBottom: '2rem',
-          letterSpacing: '1px'
-        }}>
-          Welcome to the BP Men’s League!
-        </h1>
-        <div style={{ background: '#3C2F2F', borderRadius: '0.5rem', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', padding: '2rem', maxWidth: 700, margin: '0 auto' }}>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1.25rem', color: '#F5E8C7' }}>League News</h2>
-          {newsError ? (
-            <p style={{ color: '#C71585' }}>{newsError}</p>
-          ) : news.length === 0 ? (
-            <p>No news at this time.</p>
-          ) : (
-            <ul style={{ padding: 0, margin: 0, listStyle: 'none' }}>
-              {news.map((item, idx) => (
-                <li key={item.id || idx} style={{
-                  marginBottom: '1.5rem',
-                  paddingBottom: '1.25rem',
-                  borderBottom: idx !== news.length - 1 ? '1px solid #F5E8C733' : 'none'
-                }}>
-                  <div style={{ fontWeight: 600, marginBottom: '0.5rem', color: '#87CEEB' }}>
-                    {item.date ? new Date(item.date).toLocaleDateString() : ''}
-                  </div>
-                  <div style={{ whiteSpace: 'pre-wrap', color: '#F5E8C7', fontWeight: 500 }}>{item.title}</div>
-                  <div style={{ whiteSpace: 'pre-wrap', color: '#F5E8C7' }}>{item.details}</div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-        <div style={{ background: '#3C2F2F', borderRadius: '0.5rem', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', padding: '2rem', maxWidth: 700, margin: '2rem auto 0' }}>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1.25rem', color: '#FFD700' }}>Upcoming Events</h2>
-          {eventsError ? (
-            <p style={{ color: '#C71585' }}>{eventsError}</p>
-          ) : events.length === 0 ? (
-            <p>No events at this time.</p>
-          ) : (
-            <ul style={{ padding: 0, margin: 0, listStyle: 'none' }}>
-              {events.map((event, idx) => (
-                <li key={event.id || idx} style={{
-                  marginBottom: '1.5rem',
-                  paddingBottom: '1.25rem',
-                  borderBottom: idx !== events.length - 1 ? '1px solid #F5E8C733' : 'none'
-                }}>
-                  <div style={{ fontWeight: 600, marginBottom: '0.5rem', color: '#FFD700' }}>
-                    {event.event_date ? new Date(event.event_date).toLocaleDateString() : ''}
-                  </div>
-                  <div style={{ whiteSpace: 'pre-wrap', color: '#F5E8C7', fontWeight: 500 }}>{event.title}</div>
-                  <div style={{ whiteSpace: 'pre-wrap', color: '#F5E8C7' }}>{event.description}</div>
-                </li>
-              ))}
-            </ul>
-          )}
+        );
+      case "players":
+        return (
+          <div>
+            <h2>Manage Players</h2>
+            <p>Go to <Link href="/admin/players">Players Admin Page</Link></p>
+          </div>
+        );
+      case "week":
+        return (
+          <div>
+            <h2>Add Weekly Results</h2>
+            <p>Go to <Link href="/admin/add-week">Add Week Page</Link></p>
+          </div>
+        );
+      case "events":
+        return (
+          <div>
+            <h2>Manage Events</h2>
+            <p>Go to <Link href="/admin/events">Events Page</Link></p>
+          </div>
+        );
+      default:
+        return null;
+    }
+  }
+
+  if (!authenticated) {
+    return (
+      <main style={{ minHeight: "100vh", background: "#f2f2f2" }}>
+        <div style={cardStyle}>
+          <h2 style={{ marginBottom: "1.5rem", color: "#222" }}>Admin Login</h2>
+          <form onSubmit={handleLogin} style={{ width: "100%" }}>
+            <input
+              type="password"
+              placeholder="Enter admin password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              style={{
+                width: "100%",
+                padding: "0.75rem",
+                fontSize: "1.1rem",
+                borderRadius: "0.5rem",
+                border: "1px solid #ddd",
+                marginBottom: "1.25rem",
+                background: "#f6f6f6"
+              }}
+            />
+            <button
+              type="submit"
+              style={{
+                background: "#00b894",
+                color: "#fff",
+                border: "none",
+                borderRadius: "0.5rem",
+                padding: "0.8rem 0",
+                width: "100%",
+                fontSize: "1rem",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+                cursor: "pointer"
+              }}
+            >
+              Login
+            </button>
+            {error && <div style={{ color: "#d63031", marginTop: 16 }}>{error}</div>}
+          </form>
         </div>
       </main>
-    </div>
+    );
+  }
+
+  return (
+    <main style={{ minHeight: "100vh", background: "#f2f2f2" }}>
+      <div style={cardStyle}>
+        <div style={{ display: "flex", alignItems: "center", marginBottom: "1.25rem" }}>
+          <nav style={tabsStyle}>
+            <button style={tabStyle(selectedTab === "dashboard")} onClick={() => setSelectedTab("dashboard")}>Dashboard</button>
+            <button style={tabStyle(selectedTab === "players")} onClick={() => setSelectedTab("players")}>Players</button>
+            <button style={tabStyle(selectedTab === "week")} onClick={() => setSelectedTab("week")}>Weekly Results</button>
+            <button style={tabStyle(selectedTab === "events")} onClick={() => setSelectedTab("events")}>Events</button>
+          </nav>
+          <button onClick={handleLogout} style={logoutStyle}>Logout</button>
+        </div>
+        <section>
+          {renderTab()}
+        </section>
+      </div>
+    </main>
   );
 }
