@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import WeeklyResultsForm from "./components/WeeklyResultsForm";
+import WeeklyResultsForm from '../../components/admin/WeeklyResultsForm';
 
 export default function AddWeekAdmin() {
   const [players, setPlayers] = useState([]);
