@@ -28,7 +28,6 @@ export default function Leaderboard() {
             <Link href="/weekly-results" style={{ color: '#F5E8C7', textDecoration: 'none' }}>Weekly Results</Link>
             <Link href="/player-stats" style={{ color: '#F5E8C7', textDecoration: 'none' }}>Player Stats</Link>
             <Link href="/leaderboard" style={{ color: '#F5E8C7', textDecoration: 'none' }}>Leaderboard</Link>
-            <Link href="/news" style={{ color: '#F5E8C7', textDecoration: 'none' }}>News</Link>
           </div>
         </div>
       </nav>

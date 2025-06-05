@@ -1,24 +1,30 @@
 import { query } from "../../lib/db";
+
 export default async function handler(req, res) {
-  if (req.method !== "GET") return res.status(405).end();
-  const result = await query(`
-    SELECT 
-      p.id as player_id,
-      p.name,
-      COALESCE(SUM(
-        (CASE WHEN wr.wins ?| ARRAY[p.name] THEN 5 ELSE 0 END) + 
-        (CASE WHEN wr.second ?| ARRAY[p.name] THEN 3 ELSE 0 END) +
-        (CASE WHEN wr.high_score ?| ARRAY[p.name] THEN 2 ELSE 0 END) +
-        (CASE WHEN wr.deuce ?| ARRAY[p.name] THEN 1 ELSE 0 END) +
-        (CASE WHEN wr.ctp = p.name THEN 1 ELSE 0 END)
-      ),0) as totalpoints,
-      COALESCE(SUM(wr.total_score),0) as totalscore,
-      COUNT(wr.id) as eventsplayed
-    FROM players p
-    LEFT JOIN weekly_results wr
-      ON (wr.wins ?| ARRAY[p.name] OR wr.second ?| ARRAY[p.name] OR wr.high_score ?| ARRAY[p.name] OR wr.deuce ?| ARRAY[p.name] OR wr.ctp = p.name)
-    GROUP BY p.id, p.name
-    ORDER BY totalpoints DESC, totalscore ASC
-  `);
-  res.status(200).json(result.rows);
+  try {
+    // This query assumes player_stats is populated and weekly_results uses player names in JSONB arrays
+    const result = await query(`
+      SELECT 
+        p.id AS player_id,
+        p.name,
+        COALESCE(ps.total_points, 0) AS totalpoints,
+        COALESCE(SUM(wr.total_score), 0) AS totalscore,
+        COALESCE(ps.rounds_played, 0) AS eventsplayed
+      FROM players p
+      LEFT JOIN player_stats ps ON ps.player_id = p.id
+      LEFT JOIN weekly_results wr 
+        ON (
+          wr.wins @> to_jsonb(p.name)::jsonb
+          OR wr.second @> to_jsonb(p.name)::jsonb
+          OR wr.high_score @> to_jsonb(p.name)::jsonb
+          OR wr.deuce @> to_jsonb(p.name)::jsonb
+        )
+      GROUP BY p.id, p.name, ps.total_points, ps.rounds_played
+      ORDER BY totalpoints DESC, totalscore DESC, p.name ASC
+    `);
+    res.status(200).json(result.rows);
+  } catch (err) {
+    console.error("API /leaderboard error:", err);
+    res.status(500).json({ error: err.message });
+  }
 }
