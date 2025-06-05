@@ -8,7 +8,7 @@ export default function AdminDashboard() {
 
   function handleLogin(e) {
     e.preventDefault();
-    // Replace with your real admin password
+    // Replace with your actual admin password!
     if (password === "YOUR_ADMIN_PASSWORD") {
       setAuthenticated(true);
       setError("");
