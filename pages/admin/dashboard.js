@@ -130,7 +130,7 @@ function EventsCard({ events, setEvents }) {
         </div>
         <textarea
           placeholder="Event Details"
-          style={styles.input + " resize:vertical; min-height:38px;"}
+          style={{ ...styles.input, resize: "vertical", minHeight: 38 }}
           value={details}
           onChange={e => setDetails(e.target.value)}
         />
@@ -337,7 +337,7 @@ function NewsCard({ news, setNews }) {
         </div>
         <textarea
           placeholder="News details"
-          style={styles.input + " resize:vertical; min-height:38px;"}
+          style={{ ...styles.input, resize: "vertical", minHeight: 38 }}
           value={body}
           onChange={e => setBody(e.target.value)}
         />
@@ -390,7 +390,7 @@ function MessagingCard({ messages, setMessages }) {
         <div style={styles.formRow}>
           <textarea
             placeholder="Type your message..."
-            style={styles.input + " resize:vertical; min-height:38px;"}
+            style={{ ...styles.input, resize: "vertical", minHeight: 38 }}
             value={msg}
             onChange={e => setMsg(e.target.value)}
           />
@@ -500,7 +500,17 @@ export default function AdminDashboard() {
 const styles = {
   cardTitle: { fontSize: 20, fontWeight: 600, marginBottom: 16, color: "#102A23" },
   formRow: { display: "flex", gap: 12, marginBottom: 10, flexWrap: "wrap" },
-  input: "flex:1 1 100px; font-size:16px; padding:10px; border-radius:7px; border:1px solid #DDE5E0; background:#F8FAF9; color:#102A23; box-shadow:0 1px 1.5px #e0e0e0; margin-bottom:0; ",
+  input: {
+    flex: "1 1 100px",
+    fontSize: 16,
+    padding: 10,
+    borderRadius: 7,
+    border: "1px solid #DDE5E0",
+    background: "#F8FAF9",
+    color: "#102A23",
+    boxShadow: "0 1px 1.5px #e0e0e0",
+    marginBottom: 0,
+  },
   button: {
     background: "linear-gradient(90deg,#29947B,#155853)",
     color: "#FFF", border: "none", borderRadius: 6, fontWeight: 600,
