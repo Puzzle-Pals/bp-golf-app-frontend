@@ -19,6 +19,32 @@ export default function Leaderboard() {
     fetchLeaderboard();
   }, []);
 
+  // Helper to get player id or slug from the leaderboard row
+  function getPlayerLink(row) {
+    if (row.player_id) return `/players/${row.player_id}`;
+    if (row.firstName && row.lastName) {
+      return `/players/${encodeURIComponent(
+        (row.firstName + '-' + row.lastName).toLowerCase()
+      )}`;
+    }
+    if (row.name) {
+      // Attempt split for fallback
+      const parts = row.name.split(' ');
+      if (parts.length >= 2)
+        return `/players/${encodeURIComponent(
+          (parts[0] + '-' + parts.slice(1).join('-')).toLowerCase()
+        )}`;
+      return `/players/${encodeURIComponent(row.name.toLowerCase())}`;
+    }
+    return '#';
+  }
+
+  function getPlayerDisplay(row) {
+    if (row.firstName && row.lastName) return `${row.firstName} ${row.lastName}`;
+    if (row.name) return row.name;
+    return "Unknown";
+  }
+
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#1B4D3E', color: '#F5E8C7' }}>
       <nav style={{ backgroundColor: '#3C2F2F', padding: '1rem', boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>
@@ -55,7 +81,11 @@ export default function Leaderboard() {
                 leaderboard.map((row, idx) => (
                   <tr key={row.player_id || idx} style={{ backgroundColor: idx % 2 === 0 ? '#2A3B35' : '#1B4D3E' }}>
                     <td style={{ padding: '0.75rem', border: '1px solid #F5E8C7' }}>{idx + 1}</td>
-                    <td style={{ padding: '0.75rem', border: '1px solid #F5E8C7' }}>{row.name}</td>
+                    <td style={{ padding: '0.75rem', border: '1px solid #F5E8C7' }}>
+                      <Link href={getPlayerLink(row)} style={{ color: '#DDE5E0', textDecoration: 'underline' }}>
+                        {getPlayerDisplay(row)}
+                      </Link>
+                    </td>
                     <td style={{ padding: '0.75rem', border: '1px solid #F5E8C7' }}>{row.totalpoints}</td>
                     <td style={{ padding: '0.75rem', border: '1px solid #F5E8C7' }}>{row.totalscore}</td>
                     <td style={{ padding: '0.75rem', border: '1px solid #F5E8C7' }}>{row.eventsplayed}</td>

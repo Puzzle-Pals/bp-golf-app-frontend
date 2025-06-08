@@ -19,6 +19,32 @@ export default function WeeklyResults() {
     fetchResults();
   }, []);
 
+  // Helper to get player link from name/id
+  function getPlayerLink(player) {
+    if (!player) return "#";
+    if (player.id) return `/players/${player.id}`;
+    if (player.firstName && player.lastName) {
+      return `/players/${encodeURIComponent((player.firstName + '-' + player.lastName).toLowerCase())}`;
+    }
+    if (typeof player === "string") {
+      const parts = player.split(' ');
+      if (parts.length >= 2) {
+        return `/players/${encodeURIComponent((parts[0] + '-' + parts.slice(1).join('-')).toLowerCase())}`;
+      }
+      return `/players/${encodeURIComponent(player.toLowerCase())}`;
+    }
+    return "#";
+  }
+  function renderPlayerLinks(players) {
+    if (!players || players.length === 0) return "";
+    return players.filter(Boolean).map((name, i) => (
+      <span key={name + i}>
+        <Link href={getPlayerLink(name)} style={{ color: '#DDE5E0', textDecoration: 'underline' }}>{name}</Link>
+        {i < players.length - 1 ? ', ' : ''}
+      </span>
+    ));
+  }
+
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#1B4D3E' }}>
       <nav style={{ backgroundColor: '#3C2F2F', padding: '1rem', boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>
@@ -56,19 +82,19 @@ export default function WeeklyResults() {
                 <tr key={res.id || idx} style={{ backgroundColor: idx % 2 === 0 ? '#2A3B35' : '#1B4D3E' }}>
                   <td style={{ padding: '0.75rem', border: '1px solid #F5E8C7' }}>{res.week_number || idx + 1}</td>
                   <td style={{ padding: '0.75rem', border: '1px solid #F5E8C7' }}>
-                    {Array.isArray(res.wins) ? res.wins.filter(Boolean).join(', ') : ''}
+                    {renderPlayerLinks(Array.isArray(res.wins) ? res.wins : [])}
                   </td>
                   <td style={{ padding: '0.75rem', border: '1px solid #F5E8C7' }}>
-                    {Array.isArray(res.second) ? res.second.filter(Boolean).join(', ') : ''}
+                    {renderPlayerLinks(Array.isArray(res.second) ? res.second : [])}
                   </td>
                   <td style={{ padding: '0.75rem', border: '1px solid #F5E8C7' }}>
-                    {Array.isArray(res.deuce) ? res.deuce.filter(Boolean).join(', ') : ''}
+                    {renderPlayerLinks(Array.isArray(res.deuce) ? res.deuce : [])}
                   </td>
                   <td style={{ padding: '0.75rem', border: '1px solid #F5E8C7' }}>
-                    {res.ctp || ''}
+                    {res.ctp ? <Link href={getPlayerLink(res.ctp)} style={{ color: '#DDE5E0', textDecoration: 'underline' }}>{res.ctp}</Link> : ''}
                   </td>
                   <td style={{ padding: '0.75rem', border: '1px solid #F5E8C7' }}>
-                    {Array.isArray(res.high_score) ? res.high_score.filter(Boolean).join(', ') : ''}
+                    {renderPlayerLinks(Array.isArray(res.high_score) ? res.high_score : [])}
                   </td>
                 </tr>
               ))}

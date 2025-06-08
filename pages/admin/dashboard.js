@@ -3,25 +3,33 @@ import Link from "next/link";
 
 // ---- Player Section ----
 function PlayersCard({ players, setPlayers }) {
-  const [name, setName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
+  const [error, setError] = useState("");
   const [editIdx, setEditIdx] = useState(-1);
 
   function handleSave(e) {
     e.preventDefault();
-    if (!name.trim()) return;
+    if (!firstName.trim() || !lastName.trim() || !email.trim()) {
+      setError("All fields are required.");
+      return;
+    }
+    setError("");
     if (editIdx >= 0) {
       const arr = [...players];
-      arr[editIdx] = { name, email };
-      setPlayers(arr.sort((a, b) => a.name.localeCompare(b.name)));
+      arr[editIdx] = { firstName, lastName, email, id: arr[editIdx].id || Date.now() };
+      setPlayers(arr.sort((a, b) => a.firstName.localeCompare(b.firstName)));
       setEditIdx(-1);
     } else {
-      setPlayers([...players, { name, email }].sort((a, b) => a.name.localeCompare(b.name)));
+      setPlayers([...players, { firstName, lastName, email, id: Date.now() }]
+        .sort((a, b) => a.firstName.localeCompare(b.firstName)));
     }
-    setName(""); setEmail("");
+    setFirstName(""); setLastName(""); setEmail("");
   }
   function handleEdit(idx) {
-    setName(players[idx].name);
+    setFirstName(players[idx].firstName);
+    setLastName(players[idx].lastName);
     setEmail(players[idx].email);
     setEditIdx(idx);
   }
@@ -36,10 +44,18 @@ function PlayersCard({ players, setPlayers }) {
         <div style={styles.formRow}>
           <input
             type="text"
-            placeholder="Player Name"
+            placeholder="First Name"
             style={styles.input}
-            value={name}
-            onChange={e => setName(e.target.value)}
+            value={firstName}
+            onChange={e => setFirstName(e.target.value)}
+            required
+          />
+          <input
+            type="text"
+            placeholder="Last Name"
+            style={styles.input}
+            value={lastName}
+            onChange={e => setLastName(e.target.value)}
             required
           />
           <input
@@ -48,24 +64,34 @@ function PlayersCard({ players, setPlayers }) {
             style={styles.input}
             value={email}
             onChange={e => setEmail(e.target.value)}
+            required
           />
           <button type="submit" style={styles.button}>
             {editIdx >= 0 ? "Update" : "Add"}
           </button>
           {editIdx >= 0 && (
-            <button type="button" onClick={() => { setEditIdx(-1); setName(""); setEmail(""); }} style={styles.cancelButton}>
+            <button type="button" onClick={() => { setEditIdx(-1); setFirstName(""); setLastName(""); setEmail(""); }} style={styles.cancelButton}>
               Cancel
             </button>
           )}
         </div>
+        {error && <div style={{ color: "#D8000C", marginTop: 8 }}>{error}</div>}
       </form>
       <div>
         <h4 style={{ margin: "16px 0 8px", color: "#30635E", fontWeight: 500 }}>Players List</h4>
         {players.length === 0 && <div style={{ color: "#9CA7A0" }}>No players yet.</div>}
         <ul style={{ padding: 0, listStyle: "none", margin: 0 }}>
           {players.map((p, i) => (
-            <li key={p.name + p.email} style={styles.listRow}>
-              <span>{p.name} <span style={{ color: "#A0A0A0" }}>({p.email})</span></span>
+            <li key={p.id || (p.firstName + p.lastName + p.email)} style={styles.listRow}>
+              <span>
+                <Link
+                  href={`/players/${p.id || encodeURIComponent((p.firstName + '-' + p.lastName).toLowerCase())}`}
+                  style={{ color: "#1B4D3E", textDecoration: "underline", fontWeight: 500 }}
+                >
+                  {p.firstName} {p.lastName}
+                </Link>
+                <span style={{ color: "#A0A0A0" }}> ({p.email})</span>
+              </span>
               <span>
                 <button onClick={() => handleEdit(i)} style={styles.smallBtn}>Edit</button>
                 <button onClick={() => handleDelete(i)} style={styles.smallBtnDelete}>Delete</button>
@@ -223,13 +249,21 @@ function WeeklyResultsCard({ players, weeklyResults, setWeeklyResults }) {
           <select style={styles.input} value={wins} onChange={e => setWins(e.target.value)} required>
             <option value="">Winner</option>
             {players.map(p => (
-              <option key={"w" + p.name} value={p.name}>{p.name}</option>
+              <option key={"w" + (p.id || p.firstName + p.lastName)} value={p.id || `${p.firstName} ${p.lastName}`}>
+                <Link href={`/players/${p.id || encodeURIComponent((p.firstName + '-' + p.lastName).toLowerCase())}`}>
+                  {p.firstName && p.lastName ? `${p.firstName} ${p.lastName}` : p.name}
+                </Link>
+              </option>
             ))}
           </select>
           <select style={styles.input} value={second} onChange={e => setSecond(e.target.value)}>
             <option value="">2nd Place</option>
             {players.map(p => (
-              <option key={"2" + p.name} value={p.name}>{p.name}</option>
+              <option key={"2" + (p.id || p.firstName + p.lastName)} value={p.id || `${p.firstName} ${p.lastName}`}>
+                <Link href={`/players/${p.id || encodeURIComponent((p.firstName + '-' + p.lastName).toLowerCase())}`}>
+                  {p.firstName && p.lastName ? `${p.firstName} ${p.lastName}` : p.name}
+                </Link>
+              </option>
             ))}
           </select>
         </div>
@@ -237,19 +271,31 @@ function WeeklyResultsCard({ players, weeklyResults, setWeeklyResults }) {
           <select style={styles.input} value={highScore} onChange={e => setHighScore(e.target.value)}>
             <option value="">Highest Score</option>
             {players.map(p => (
-              <option key={"h" + p.name} value={p.name}>{p.name}</option>
+              <option key={"h" + (p.id || p.firstName + p.lastName)} value={p.id || `${p.firstName} ${p.lastName}`}>
+                <Link href={`/players/${p.id || encodeURIComponent((p.firstName + '-' + p.lastName).toLowerCase())}`}>
+                  {p.firstName && p.lastName ? `${p.firstName} ${p.lastName}` : p.name}
+                </Link>
+              </option>
             ))}
           </select>
           <select style={styles.input} value={deuce} onChange={e => setDeuce(e.target.value)}>
             <option value="">Deuce Pot Wins</option>
             {players.map(p => (
-              <option key={"d" + p.name} value={p.name}>{p.name}</option>
+              <option key={"d" + (p.id || p.firstName + p.lastName)} value={p.id || `${p.firstName} ${p.lastName}`}>
+                <Link href={`/players/${p.id || encodeURIComponent((p.firstName + '-' + p.lastName).toLowerCase())}`}>
+                  {p.firstName && p.lastName ? `${p.firstName} ${p.lastName}` : p.name}
+                </Link>
+              </option>
             ))}
           </select>
           <select style={styles.input} value={ctp} onChange={e => setCtp(e.target.value)}>
             <option value="">Closest to Pin</option>
             {players.map(p => (
-              <option key={"c" + p.name} value={p.name}>{p.name}</option>
+              <option key={"c" + (p.id || p.firstName + p.lastName)} value={p.id || `${p.firstName} ${p.lastName}`}>
+                <Link href={`/players/${p.id || encodeURIComponent((p.firstName + '-' + p.lastName).toLowerCase())}`}>
+                  {p.firstName && p.lastName ? `${p.firstName} ${p.lastName}` : p.name}
+                </Link>
+              </option>
             ))}
           </select>
         </div>
