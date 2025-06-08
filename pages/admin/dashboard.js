@@ -492,7 +492,6 @@ export default function AdminDashboard() {
             <a href="/leaderboard" target="_blank" rel="noopener noreferrer" style={{ color: "#F5E8C7", textDecoration: "none" }}>Leaderboard</a>
             <a href="/player-stats" target="_blank" rel="noopener noreferrer" style={{ color: "#F5E8C7", textDecoration: "none" }}>Player Stats</a>
             <a href="/weekly-results" target="_blank" rel="noopener noreferrer" style={{ color: "#F5E8C7", textDecoration: "none" }}>Weekly Results</a>
-            <a href="/news" target="_blank" rel="noopener noreferrer" style={{ color: "#F5E8C7", textDecoration: "none" }}>News</a>
             <Link href="/admin" style={{
               color: "#F5E8C7", textDecoration: "none", fontWeight: "bold", borderBottom: "2px solid #DDE5E0"
             }}>Admin</Link>

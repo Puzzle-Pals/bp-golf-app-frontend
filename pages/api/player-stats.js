@@ -5,12 +5,12 @@ export default async function handler(req, res) {
     const result = await query(`
       SELECT
         p.id AS player_id,
-        p.name,
+        CONCAT(p.first_name, ' ', p.last_name) AS name,
         COALESCE(ps.average_score, 0) AS averagescore,
         COALESCE(ps.rounds_played, 0) AS roundsplayed
       FROM players p
       LEFT JOIN player_stats ps ON ps.player_id = p.id
-      ORDER BY p.name ASC
+      ORDER BY p.first_name ASC, p.last_name ASC
     `);
     res.status(200).json(result.rows);
   } catch (err) {
