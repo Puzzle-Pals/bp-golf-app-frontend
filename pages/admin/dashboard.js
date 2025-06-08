@@ -339,87 +339,6 @@ function WeeklyResultsCard({ players, weeklyResults, setWeeklyResults }) {
   );
 }
 
-// ---- News Section ----
-function NewsCard({ news, setNews }) {
-  const [headline, setHeadline] = useState("");
-  const [body, setBody] = useState("");
-  const [editIdx, setEditIdx] = useState(-1);
-
-  function handleSave(e) {
-    e.preventDefault();
-    if (!headline.trim()) return;
-    if (editIdx >= 0) {
-      const arr = [...news];
-      arr[editIdx] = { headline, body };
-      setNews(arr);
-      setEditIdx(-1);
-    } else {
-      setNews([...news, { headline, body }]);
-    }
-    setHeadline(""); setBody("");
-  }
-  function handleEdit(idx) {
-    setHeadline(news[idx].headline);
-    setBody(news[idx].body);
-    setEditIdx(idx);
-  }
-  function handleDelete(idx) {
-    setNews(news.filter((_, i) => i !== idx));
-    if (editIdx === idx) setEditIdx(-1);
-  }
-  return (
-    <div>
-      <h3 style={styles.cardTitle}>Post League News</h3>
-      <form onSubmit={handleSave} style={{ marginBottom: 20 }}>
-        <div style={styles.formRow}>
-          <input
-            type="text"
-            placeholder="Headline"
-            style={styles.input}
-            value={headline}
-            onChange={e => setHeadline(e.target.value)}
-            required
-          />
-        </div>
-        <textarea
-          placeholder="News details"
-          style={{ ...styles.input, resize: "vertical", minHeight: 38 }}
-          value={body}
-          onChange={e => setBody(e.target.value)}
-        />
-        <div>
-          <button type="submit" style={styles.button}>
-            {editIdx >= 0 ? "Update" : "Add"}
-          </button>
-          {editIdx >= 0 && (
-            <button type="button" onClick={() => { setEditIdx(-1); setHeadline(""); setBody(""); }} style={styles.cancelButton}>
-              Cancel
-            </button>
-          )}
-        </div>
-      </form>
-      <div>
-        <h4 style={{ margin: "16px 0 8px", color: "#30635E", fontWeight: 500 }}>News List</h4>
-        {news.length === 0 && <div style={{ color: "#9CA7A0" }}>No news yet.</div>}
-        <ul style={{ padding: 0, listStyle: "none", margin: 0 }}>
-          {news.map((item, i) => (
-            <li key={item.headline + i} style={styles.listRow}>
-              <span>
-                <b>{item.headline}</b><br />
-                <span style={{ fontSize: 14 }}>{item.body}</span>
-              </span>
-              <span>
-                <button onClick={() => handleEdit(i)} style={styles.smallBtn}>Edit</button>
-                <button onClick={() => handleDelete(i)} style={styles.smallBtnDelete}>Delete</button>
-              </span>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </div>
-  );
-}
-
 // ---- Messaging Section ----
 function MessagingCard({ messages, setMessages }) {
   const [msg, setMsg] = useState("");
@@ -466,14 +385,12 @@ export default function AdminDashboard() {
   const [players, setPlayers] = useState([]);
   const [events, setEvents] = useState([]);
   const [weeklyResults, setWeeklyResults] = useState([]);
-  const [news, setNews] = useState([]);
   const [messages, setMessages] = useState([]);
 
   const tabs = [
     { key: "Players", label: "Players", body: <PlayersCard players={players} setPlayers={setPlayers} /> },
     { key: "Events", label: "Events", body: <EventsCard events={events} setEvents={setEvents} /> },
     { key: "WeeklyResults", label: "Weekly Results", body: <WeeklyResultsCard players={players} weeklyResults={weeklyResults} setWeeklyResults={setWeeklyResults} /> },
-    { key: "News", label: "News", body: <NewsCard news={news} setNews={setNews} /> },
     { key: "Messaging", label: "Messaging", body: <MessagingCard messages={messages} setMessages={setMessages} /> },
   ];
 
