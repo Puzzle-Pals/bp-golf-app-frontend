@@ -686,12 +686,16 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     (async () => {
-      const res = await fetch("/api/admin", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "checkAuth" }),
-        credentials: "include"
-      });
+      // IMPORTANT: Use the backend API URL for checkAuth!
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL || "https://bp-golf-app-backend.vercel.app/api"}/admin`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "checkAuth" }),
+          credentials: "include",
+        }
+      );
       if (!res.ok) {
         window.location.href = "/admin";
       } else {
