@@ -8,7 +8,6 @@ export default function AdminPage() {
 
   useEffect(() => {
     (async () => {
-      // NOTE: This must go to your backend API, not local /api/admin.
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_BASE_URL || "https://bp-golf-app-backend.vercel.app/api"}/admin`,
         {
