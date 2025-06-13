@@ -14,11 +14,10 @@ export default function handler(req, res) {
     return res.status(401).json({ error: "Invalid password" });
   }
 
-  const token = jwt.sign(
-    { admin: true },
-    JWT_SECRET,
-    { expiresIn: "30m" }
-  );
+  const token = jwt.sign({ admin: true }, JWT_SECRET, { expiresIn: "30m" });
 
-  res.status(200).json({ token });
+  res.setHeader("Set-Cookie", [
+    `bp_admin_token=${token}; HttpOnly; Path=/; Max-Age=1800; SameSite=Strict; Secure`
+  ]);
+  res.status(200).json({ ok: true });
 }

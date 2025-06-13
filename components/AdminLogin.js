@@ -15,11 +15,10 @@ export default function AdminLogin() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ password }),
+        credentials: "include", // CRITICAL for cookie-based auth!
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Login failed");
-
-      window.localStorage.setItem("bp_admin_token", data.token);
       Router.replace("/admin/dashboard");
     } catch (err) {
       setError(err.message);

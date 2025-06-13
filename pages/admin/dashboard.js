@@ -682,14 +682,30 @@ export default function AdminDashboard() {
   const [weeklyResults, setWeeklyResults] = useState([]);
   const [news, setNews] = useState([]);
   const [messages, setMessages] = useState([]);
+  const [checking, setChecking] = useState(true);
 
-  // Logout handler
-  function handleLogout() {
-    if (typeof window !== "undefined") {
-      window.localStorage.removeItem("bp_admin_token");
-      window.location.href = "/admin";
-    }
+  useEffect(() => {
+    (async () => {
+      const res = await fetch("/api/admin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "checkAuth" }),
+        credentials: "include"
+      });
+      if (!res.ok) {
+        window.location.href = "/admin";
+      } else {
+        setChecking(false);
+      }
+    })();
+  }, []);
+
+  async function handleLogout() {
+    await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
+    window.location.href = "/admin";
   }
+
+  if (checking) return null;
 
   const tabs = [
     { key: "Players", label: "Players", body: <PlayersCard players={players} setPlayers={setPlayers} /> },
@@ -701,7 +717,6 @@ export default function AdminDashboard() {
 
   return (
     <div style={{ minHeight: "100vh", background: "linear-gradient(120deg,#E5F3EF 0%,#CCE8E1 100%)" }}>
-      {/* Top nav */}
       <nav style={{ backgroundColor: "#20504F", padding: "1rem 0", boxShadow: "0 2px 8px rgba(32,80,79,0.07)" }}>
         <div style={{
           maxWidth: "1200px", margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center"

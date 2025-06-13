@@ -3,33 +3,32 @@ const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE_URL || "https://bp-golf-app-backend.vercel.app/api";
 const ADMIN_URL = `${API_BASE}/admin`;
 
-// Get JWT from secure storage
-function getToken() {
-  if (typeof window === "undefined") return null;
-  return window.localStorage.getItem("bp_admin_token");
-}
-
 // Generic admin API call with action param
 export async function adminApi(action, data = {}) {
-  const token = getToken();
   const headers = { "Content-Type": "application/json" };
-  if (token) headers["Authorization"] = `Bearer ${token}`;
   const res = await fetch(ADMIN_URL, {
     method: "POST",
     headers,
     body: JSON.stringify({ action, ...data }),
-    credentials: "include"
+    credentials: "include" // CRITICAL: send cookies!
   });
   const json = await res.json();
   if (!res.ok) throw new Error(json.error || "API error");
   return json;
 }
 
-// Admin Auth (login)
+// Admin Auth (login) -- now handled server-side, do not set localStorage
 export async function adminLogin(password) {
-  const res = await adminApi("login", { password });
-  if (typeof window !== "undefined") window.localStorage.setItem("bp_admin_token", res.token);
-  return res;
+  // This endpoint should set the cookie if successful
+  const res = await fetch("/api/auth/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ password }),
+    credentials: "include"
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Login failed");
+  return data;
 }
 
 // Messaging
@@ -144,8 +143,6 @@ export async function adminDeleteNews(id) {
 }
 
 // ----------- PUBLIC ENDPOINTS ------------
-// If public endpoints are served by the backend, use API_BASE
-// If they are served by frontend, keep them as "/api"
 export async function apiFetch(path, { method = "GET", data } = {}) {
   // If path starts with '/api', remove it to avoid double '/api/api'
   let urlPath = path.startsWith("/api") ? path.slice(4) : path;
