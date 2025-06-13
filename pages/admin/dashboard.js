@@ -1,5 +1,24 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import {
+  adminGetPlayers,
+  adminAddPlayer,
+  adminUpdatePlayer,
+  adminDeletePlayer,
+  adminGetEvents,
+  adminAddEvent,
+  adminUpdateEvent,
+  adminDeleteEvent,
+  adminGetWeeklyResults,
+  adminAddWeeklyResult,
+  adminUpdateWeeklyResult,
+  adminDeleteWeeklyResult,
+  adminGetNews,
+  adminAddNews,
+  adminUpdateNews,
+  adminDeleteNews,
+  sendAdminMessage,
+} from "../../utils/api";
 
 // ---- Player Section ----
 function PlayersCard({ players, setPlayers }) {
@@ -8,34 +27,73 @@ function PlayersCard({ players, setPlayers }) {
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const [editIdx, setEditIdx] = useState(-1);
+  const [loading, setLoading] = useState(false);
 
-  function handleSave(e) {
+  async function refreshPlayers() {
+    try {
+      const data = await adminGetPlayers();
+      setPlayers(data);
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
+  useEffect(() => {
+    refreshPlayers();
+    // eslint-disable-next-line
+  }, []);
+
+  async function handleSave(e) {
     e.preventDefault();
     if (!firstName.trim() || !lastName.trim() || !email.trim()) {
       setError("All fields are required.");
       return;
     }
     setError("");
-    if (editIdx >= 0) {
-      const arr = [...players];
-      arr[editIdx] = { firstName, lastName, email, id: arr[editIdx].id || Date.now() };
-      setPlayers(arr.sort((a, b) => a.firstName.localeCompare(b.firstName)));
+    setLoading(true);
+    try {
+      if (editIdx >= 0) {
+        const updated = { ...players[editIdx], first_name: firstName, last_name: lastName, email };
+        await adminUpdatePlayer({
+          id: updated.id,
+          first_name: updated.first_name,
+          last_name: updated.last_name,
+          email: updated.email,
+        });
+      } else {
+        await adminAddPlayer({
+          first_name: firstName,
+          last_name: lastName,
+          email,
+        });
+      }
+      await refreshPlayers();
       setEditIdx(-1);
-    } else {
-      setPlayers([...players, { firstName, lastName, email, id: Date.now() }]
-        .sort((a, b) => a.firstName.localeCompare(b.firstName)));
+      setFirstName("");
+      setLastName("");
+      setEmail("");
+    } catch (err) {
+      setError(err.message);
     }
-    setFirstName(""); setLastName(""); setEmail("");
+    setLoading(false);
   }
   function handleEdit(idx) {
-    setFirstName(players[idx].firstName);
-    setLastName(players[idx].lastName);
+    setFirstName(players[idx].first_name || players[idx].firstName);
+    setLastName(players[idx].last_name || players[idx].lastName);
     setEmail(players[idx].email);
     setEditIdx(idx);
   }
-  function handleDelete(idx) {
-    setPlayers(players.filter((_, i) => i !== idx));
-    if (editIdx === idx) setEditIdx(-1);
+  async function handleDelete(idx) {
+    setError("");
+    setLoading(true);
+    try {
+      await adminDeletePlayer(players[idx].id);
+      await refreshPlayers();
+      if (editIdx === idx) setEditIdx(-1);
+    } catch (err) {
+      setError(err.message);
+    }
+    setLoading(false);
   }
   return (
     <div>
@@ -66,11 +124,11 @@ function PlayersCard({ players, setPlayers }) {
             onChange={e => setEmail(e.target.value)}
             required
           />
-          <button type="submit" style={styles.button}>
+          <button type="submit" style={styles.button} disabled={loading}>
             {editIdx >= 0 ? "Update" : "Add"}
           </button>
           {editIdx >= 0 && (
-            <button type="button" onClick={() => { setEditIdx(-1); setFirstName(""); setLastName(""); setEmail(""); }} style={styles.cancelButton}>
+            <button type="button" onClick={() => { setEditIdx(-1); setFirstName(""); setLastName(""); setEmail(""); }} style={styles.cancelButton} disabled={loading}>
               Cancel
             </button>
           )}
@@ -82,19 +140,19 @@ function PlayersCard({ players, setPlayers }) {
         {players.length === 0 && <div style={{ color: "#9CA7A0" }}>No players yet.</div>}
         <ul style={{ padding: 0, listStyle: "none", margin: 0 }}>
           {players.map((p, i) => (
-            <li key={p.id || (p.firstName + p.lastName + p.email)} style={styles.listRow}>
+            <li key={p.id || (p.first_name + p.last_name + p.email)} style={styles.listRow}>
               <span>
                 <Link
-                  href={`/players/${p.id || encodeURIComponent((p.firstName + '-' + p.lastName).toLowerCase())}`}
+                  href={`/players/${p.id || encodeURIComponent((p.first_name + '-' + p.last_name).toLowerCase())}`}
                   style={{ color: "#1B4D3E", textDecoration: "underline", fontWeight: 500 }}
                 >
-                  {p.firstName} {p.lastName}
+                  {p.first_name} {p.last_name}
                 </Link>
                 <span style={{ color: "#A0A0A0" }}> ({p.email})</span>
               </span>
               <span>
-                <button onClick={() => handleEdit(i)} style={styles.smallBtn}>Edit</button>
-                <button onClick={() => handleDelete(i)} style={styles.smallBtnDelete}>Delete</button>
+                <button onClick={() => handleEdit(i)} style={styles.smallBtn} disabled={loading}>Edit</button>
+                <button onClick={() => handleDelete(i)} style={styles.smallBtnDelete} disabled={loading}>Delete</button>
               </span>
             </li>
           ))}
@@ -110,29 +168,74 @@ function EventsCard({ events, setEvents }) {
   const [date, setDate] = useState("");
   const [details, setDetails] = useState("");
   const [editIdx, setEditIdx] = useState(-1);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  function handleSave(e) {
-    e.preventDefault();
-    if (!name.trim()) return;
-    if (editIdx >= 0) {
-      const arr = [...events];
-      arr[editIdx] = { name, date, details };
-      setEvents(arr);
-      setEditIdx(-1);
-    } else {
-      setEvents([...events, { name, date, details }]);
+  async function refreshEvents() {
+    try {
+      const data = await adminGetEvents();
+      setEvents(data);
+    } catch (err) {
+      setError(err.message);
     }
-    setName(""); setDate(""); setDetails("");
+  }
+
+  useEffect(() => {
+    refreshEvents();
+    // eslint-disable-next-line
+  }, []);
+
+  async function handleSave(e) {
+    e.preventDefault();
+    if (!name.trim()) {
+      setError("Event name is required.");
+      return;
+    }
+    setError("");
+    setLoading(true);
+    try {
+      if (editIdx >= 0) {
+        const updated = { ...events[editIdx], name, date, details };
+        await adminUpdateEvent({
+          id: updated.id,
+          title: updated.name,
+          event_date: updated.date,
+          description: updated.details,
+        });
+      } else {
+        await adminAddEvent({
+          title: name,
+          event_date: date,
+          description: details,
+        });
+      }
+      await refreshEvents();
+      setEditIdx(-1);
+      setName("");
+      setDate("");
+      setDetails("");
+    } catch (err) {
+      setError(err.message);
+    }
+    setLoading(false);
   }
   function handleEdit(idx) {
-    setName(events[idx].name);
-    setDate(events[idx].date);
-    setDetails(events[idx].details);
+    setName(events[idx].title || events[idx].name);
+    setDate(events[idx].event_date || events[idx].date);
+    setDetails(events[idx].description || events[idx].details);
     setEditIdx(idx);
   }
-  function handleDelete(idx) {
-    setEvents(events.filter((_, i) => i !== idx));
-    if (editIdx === idx) setEditIdx(-1);
+  async function handleDelete(idx) {
+    setError("");
+    setLoading(true);
+    try {
+      await adminDeleteEvent(events[idx].id);
+      await refreshEvents();
+      if (editIdx === idx) setEditIdx(-1);
+    } catch (err) {
+      setError(err.message);
+    }
+    setLoading(false);
   }
   return (
     <div>
@@ -161,30 +264,31 @@ function EventsCard({ events, setEvents }) {
           onChange={e => setDetails(e.target.value)}
         />
         <div>
-          <button type="submit" style={styles.button}>
+          <button type="submit" style={styles.button} disabled={loading}>
             {editIdx >= 0 ? "Update" : "Add"}
           </button>
           {editIdx >= 0 && (
-            <button type="button" onClick={() => { setEditIdx(-1); setName(""); setDate(""); setDetails(""); }} style={styles.cancelButton}>
+            <button type="button" onClick={() => { setEditIdx(-1); setName(""); setDate(""); setDetails(""); }} style={styles.cancelButton} disabled={loading}>
               Cancel
             </button>
           )}
         </div>
+        {error && <div style={{ color: "#D8000C", marginTop: 8 }}>{error}</div>}
       </form>
       <div>
         <h4 style={{ margin: "16px 0 8px", color: "#30635E", fontWeight: 500 }}>Events List</h4>
         {events.length === 0 && <div style={{ color: "#9CA7A0" }}>No events yet.</div>}
         <ul style={{ padding: 0, listStyle: "none", margin: 0 }}>
           {events.map((ev, i) => (
-            <li key={ev.name + ev.date} style={styles.listRow}>
+            <li key={ev.id || ev.name + ev.date} style={styles.listRow}>
               <span>
-                <b>{ev.name}</b> <span style={{ color: "#A0A0A0" }}>({ev.date})</span>
+                <b>{ev.title || ev.name}</b> <span style={{ color: "#A0A0A0" }}>({ev.event_date || ev.date})</span>
                 <br />
-                <span style={{ color: "#30635E", fontSize: 14 }}>{ev.details}</span>
+                <span style={{ color: "#30635E", fontSize: 14 }}>{ev.description || ev.details}</span>
               </span>
               <span>
-                <button onClick={() => handleEdit(i)} style={styles.smallBtn}>Edit</button>
-                <button onClick={() => handleDelete(i)} style={styles.smallBtnDelete}>Delete</button>
+                <button onClick={() => handleEdit(i)} style={styles.smallBtn} disabled={loading}>Edit</button>
+                <button onClick={() => handleDelete(i)} style={styles.smallBtnDelete} disabled={loading}>Delete</button>
               </span>
             </li>
           ))}
@@ -203,24 +307,56 @@ function WeeklyResultsCard({ players, weeklyResults, setWeeklyResults }) {
   const [deuce, setDeuce] = useState("");
   const [ctp, setCtp] = useState("");
   const [editIdx, setEditIdx] = useState(-1);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  function handleSave(e) {
-    e.preventDefault();
-    if (!weekNum) return;
-    const entry = { weekNum, wins, second, highScore, deuce, ctp };
-    if (editIdx >= 0) {
-      const arr = [...weeklyResults];
-      arr[editIdx] = entry;
-      setWeeklyResults(arr);
-      setEditIdx(-1);
-    } else {
-      setWeeklyResults([...weeklyResults, entry]);
+  async function refreshWeeklyResults() {
+    try {
+      const data = await adminGetWeeklyResults();
+      setWeeklyResults(data);
+    } catch (err) {
+      setError(err.message);
     }
-    setWeekNum(""); setWins(""); setSecond(""); setHighScore(""); setDeuce(""); setCtp("");
+  }
+
+  useEffect(() => {
+    refreshWeeklyResults();
+    // eslint-disable-next-line
+  }, []);
+
+  async function handleSave(e) {
+    e.preventDefault();
+    if (!weekNum) {
+      setError("Week number is required.");
+      return;
+    }
+    setError("");
+    setLoading(true);
+    try {
+      const entry = {
+        weekNum,
+        wins,
+        second,
+        highScore,
+        deuce,
+        ctp,
+      };
+      if (editIdx >= 0) {
+        await adminUpdateWeeklyResult({ ...weeklyResults[editIdx], ...entry });
+      } else {
+        await adminAddWeeklyResult(entry);
+      }
+      await refreshWeeklyResults();
+      setEditIdx(-1);
+      setWeekNum(""); setWins(""); setSecond(""); setHighScore(""); setDeuce(""); setCtp("");
+    } catch (err) {
+      setError(err.message);
+    }
+    setLoading(false);
   }
   function handleEdit(idx) {
     const w = weeklyResults[idx];
-    setWeekNum(w.weekNum);
+    setWeekNum(w.weekNum || w.week_number);
     setWins(w.wins);
     setSecond(w.second);
     setHighScore(w.highScore);
@@ -228,9 +364,17 @@ function WeeklyResultsCard({ players, weeklyResults, setWeeklyResults }) {
     setCtp(w.ctp);
     setEditIdx(idx);
   }
-  function handleDelete(idx) {
-    setWeeklyResults(weeklyResults.filter((_, i) => i !== idx));
-    if (editIdx === idx) setEditIdx(-1);
+  async function handleDelete(idx) {
+    setError("");
+    setLoading(true);
+    try {
+      await adminDeleteWeeklyResult(weeklyResults[idx].id);
+      await refreshWeeklyResults();
+      if (editIdx === idx) setEditIdx(-1);
+    } catch (err) {
+      setError(err.message);
+    }
+    setLoading(false);
   }
   return (
     <div>
@@ -249,20 +393,16 @@ function WeeklyResultsCard({ players, weeklyResults, setWeeklyResults }) {
           <select style={styles.input} value={wins} onChange={e => setWins(e.target.value)} required>
             <option value="">Winner</option>
             {players.map(p => (
-              <option key={"w" + (p.id || p.firstName + p.lastName)} value={p.id || `${p.firstName} ${p.lastName}`}>
-                <Link href={`/players/${p.id || encodeURIComponent((p.firstName + '-' + p.lastName).toLowerCase())}`}>
-                  {p.firstName && p.lastName ? `${p.firstName} ${p.lastName}` : p.name}
-                </Link>
+              <option key={p.id} value={p.id}>
+                {p.first_name} {p.last_name}
               </option>
             ))}
           </select>
           <select style={styles.input} value={second} onChange={e => setSecond(e.target.value)}>
             <option value="">2nd Place</option>
             {players.map(p => (
-              <option key={"2" + (p.id || p.firstName + p.lastName)} value={p.id || `${p.firstName} ${p.lastName}`}>
-                <Link href={`/players/${p.id || encodeURIComponent((p.firstName + '-' + p.lastName).toLowerCase())}`}>
-                  {p.firstName && p.lastName ? `${p.firstName} ${p.lastName}` : p.name}
-                </Link>
+              <option key={p.id} value={p.id}>
+                {p.first_name} {p.last_name}
               </option>
             ))}
           </select>
@@ -271,46 +411,41 @@ function WeeklyResultsCard({ players, weeklyResults, setWeeklyResults }) {
           <select style={styles.input} value={highScore} onChange={e => setHighScore(e.target.value)}>
             <option value="">Highest Score</option>
             {players.map(p => (
-              <option key={"h" + (p.id || p.firstName + p.lastName)} value={p.id || `${p.firstName} ${p.lastName}`}>
-                <Link href={`/players/${p.id || encodeURIComponent((p.firstName + '-' + p.lastName).toLowerCase())}`}>
-                  {p.firstName && p.lastName ? `${p.firstName} ${p.lastName}` : p.name}
-                </Link>
+              <option key={p.id} value={p.id}>
+                {p.first_name} {p.last_name}
               </option>
             ))}
           </select>
           <select style={styles.input} value={deuce} onChange={e => setDeuce(e.target.value)}>
             <option value="">Deuce Pot Wins</option>
             {players.map(p => (
-              <option key={"d" + (p.id || p.firstName + p.lastName)} value={p.id || `${p.firstName} ${p.lastName}`}>
-                <Link href={`/players/${p.id || encodeURIComponent((p.firstName + '-' + p.lastName).toLowerCase())}`}>
-                  {p.firstName && p.lastName ? `${p.firstName} ${p.lastName}` : p.name}
-                </Link>
+              <option key={p.id} value={p.id}>
+                {p.first_name} {p.last_name}
               </option>
             ))}
           </select>
           <select style={styles.input} value={ctp} onChange={e => setCtp(e.target.value)}>
             <option value="">Closest to Pin</option>
             {players.map(p => (
-              <option key={"c" + (p.id || p.firstName + p.lastName)} value={p.id || `${p.firstName} ${p.lastName}`}>
-                <Link href={`/players/${p.id || encodeURIComponent((p.firstName + '-' + p.lastName).toLowerCase())}`}>
-                  {p.firstName && p.lastName ? `${p.firstName} ${p.lastName}` : p.name}
-                </Link>
+              <option key={p.id} value={p.id}>
+                {p.first_name} {p.last_name}
               </option>
             ))}
           </select>
         </div>
         <div>
-          <button type="submit" style={styles.button}>
+          <button type="submit" style={styles.button} disabled={loading}>
             {editIdx >= 0 ? "Update" : "Add"}
           </button>
           {editIdx >= 0 && (
             <button type="button" onClick={() => {
               setEditIdx(-1); setWeekNum(""); setWins(""); setSecond(""); setHighScore(""); setDeuce(""); setCtp("");
-            }} style={styles.cancelButton}>
+            }} style={styles.cancelButton} disabled={loading}>
               Cancel
             </button>
           )}
         </div>
+        {error && <div style={{ color: "#D8000C", marginTop: 8 }}>{error}</div>}
       </form>
       <div>
         <h4 style={{ margin: "16px 0 8px", color: "#30635E", fontWeight: 500 }}>Weekly Results List</h4>
@@ -318,18 +453,18 @@ function WeeklyResultsCard({ players, weeklyResults, setWeeklyResults }) {
         <ul style={{ padding: 0, listStyle: "none", margin: 0 }}>
           {weeklyResults
             .slice()
-            .sort((a, b) => Number(a.weekNum) - Number(b.weekNum))
+            .sort((a, b) => Number(a.weekNum || a.week_number) - Number(b.weekNum || b.week_number))
             .map((w, i) => (
-            <li key={w.weekNum + w.wins} style={styles.listRow}>
+            <li key={w.id || w.weekNum + w.wins} style={styles.listRow}>
               <span>
-                <b>Week {w.weekNum}</b>: 
+                <b>Week {w.weekNum || w.week_number}</b>: 
                 <span style={{ marginLeft: 10 }}>
                   Winner: {w.wins || "-"}, 2nd: {w.second || "-"}, High Score: {w.highScore || "-"}, Deuce: {w.deuce || "-"}, CTP: {w.ctp || "-"}
                 </span>
               </span>
               <span>
-                <button onClick={() => handleEdit(i)} style={styles.smallBtn}>Edit</button>
-                <button onClick={() => handleDelete(i)} style={styles.smallBtnDelete}>Delete</button>
+                <button onClick={() => handleEdit(i)} style={styles.smallBtn} disabled={loading}>Edit</button>
+                <button onClick={() => handleDelete(i)} style={styles.smallBtnDelete} disabled={loading}>Delete</button>
               </span>
             </li>
           ))}
@@ -344,28 +479,62 @@ function NewsCard({ news, setNews }) {
   const [headline, setHeadline] = useState("");
   const [body, setBody] = useState("");
   const [editIdx, setEditIdx] = useState(-1);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  function handleSave(e) {
-    e.preventDefault();
-    if (!headline.trim()) return;
-    if (editIdx >= 0) {
-      const arr = [...news];
-      arr[editIdx] = { headline, body };
-      setNews(arr);
-      setEditIdx(-1);
-    } else {
-      setNews([...news, { headline, body }]);
+  async function refreshNews() {
+    try {
+      const data = await adminGetNews();
+      setNews(data);
+    } catch (err) {
+      setError(err.message);
     }
-    setHeadline(""); setBody("");
+  }
+
+  useEffect(() => {
+    refreshNews();
+    // eslint-disable-next-line
+  }, []);
+
+  async function handleSave(e) {
+    e.preventDefault();
+    if (!headline.trim()) {
+      setError("Headline is required.");
+      return;
+    }
+    setError("");
+    setLoading(true);
+    try {
+      if (editIdx >= 0) {
+        const updated = { ...news[editIdx], title: headline, details: body };
+        await adminUpdateNews({ id: updated.id, title: updated.title, details: updated.details });
+      } else {
+        await adminAddNews({ title: headline, details: body });
+      }
+      await refreshNews();
+      setEditIdx(-1);
+      setHeadline(""); setBody("");
+    } catch (err) {
+      setError(err.message);
+    }
+    setLoading(false);
   }
   function handleEdit(idx) {
-    setHeadline(news[idx].headline);
-    setBody(news[idx].body);
+    setHeadline(news[idx].title || news[idx].headline);
+    setBody(news[idx].details || news[idx].body);
     setEditIdx(idx);
   }
-  function handleDelete(idx) {
-    setNews(news.filter((_, i) => i !== idx));
-    if (editIdx === idx) setEditIdx(-1);
+  async function handleDelete(idx) {
+    setError("");
+    setLoading(true);
+    try {
+      await adminDeleteNews(news[idx].id);
+      await refreshNews();
+      if (editIdx === idx) setEditIdx(-1);
+    } catch (err) {
+      setError(err.message);
+    }
+    setLoading(false);
   }
   return (
     <div>
@@ -388,29 +557,30 @@ function NewsCard({ news, setNews }) {
           onChange={e => setBody(e.target.value)}
         />
         <div>
-          <button type="submit" style={styles.button}>
+          <button type="submit" style={styles.button} disabled={loading}>
             {editIdx >= 0 ? "Update" : "Add"}
           </button>
           {editIdx >= 0 && (
-            <button type="button" onClick={() => { setEditIdx(-1); setHeadline(""); setBody(""); }} style={styles.cancelButton}>
+            <button type="button" onClick={() => { setEditIdx(-1); setHeadline(""); setBody(""); }} style={styles.cancelButton} disabled={loading}>
               Cancel
             </button>
           )}
         </div>
+        {error && <div style={{ color: "#D8000C", marginTop: 8 }}>{error}</div>}
       </form>
       <div>
         <h4 style={{ margin: "16px 0 8px", color: "#30635E", fontWeight: 500 }}>News List</h4>
         {news.length === 0 && <div style={{ color: "#9CA7A0" }}>No news yet.</div>}
         <ul style={{ padding: 0, listStyle: "none", margin: 0 }}>
           {news.map((item, i) => (
-            <li key={item.headline + i} style={styles.listRow}>
+            <li key={item.id || item.headline + i} style={styles.listRow}>
               <span>
-                <b>{item.headline}</b><br />
-                <span style={{ fontSize: 14 }}>{item.body}</span>
+                <b>{item.title || item.headline}</b><br />
+                <span style={{ fontSize: 14 }}>{item.details || item.body}</span>
               </span>
               <span>
-                <button onClick={() => handleEdit(i)} style={styles.smallBtn}>Edit</button>
-                <button onClick={() => handleDelete(i)} style={styles.smallBtnDelete}>Delete</button>
+                <button onClick={() => handleEdit(i)} style={styles.smallBtn} disabled={loading}>Edit</button>
+                <button onClick={() => handleDelete(i)} style={styles.smallBtnDelete} disabled={loading}>Delete</button>
               </span>
             </li>
           ))}
@@ -423,25 +593,69 @@ function NewsCard({ news, setNews }) {
 // ---- Messaging Section ----
 function MessagingCard({ messages, setMessages }) {
   const [msg, setMsg] = useState("");
-  function handleSend(e) {
+  const [subject, setSubject] = useState("");
+  const [emailList, setEmailList] = useState("");
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  async function handleSend(e) {
     e.preventDefault();
-    if (!msg.trim()) return;
-    setMessages([...messages, { msg, date: new Date().toLocaleString() }]);
-    setMsg("");
+    setError("");
+    setSuccess("");
+    if (!msg.trim() || !subject.trim() || !emailList.trim()) {
+      setError("Subject, recipients, and message are required.");
+      return;
+    }
+    setLoading(true);
+    try {
+      await sendAdminMessage({
+        subject,
+        message: msg,
+        recipientEmails: emailList.split(",").map(e => e.trim()),
+      });
+      setSuccess("Message sent!");
+      setMessages([...messages, { msg, date: new Date().toLocaleString() }]);
+      setMsg("");
+      setSubject("");
+      setEmailList("");
+    } catch (err) {
+      setError(err.message);
+    }
+    setLoading(false);
   }
   return (
     <div>
       <h3 style={styles.cardTitle}>Send Announcement</h3>
       <form onSubmit={handleSend} style={{ marginBottom: 20 }}>
         <div style={styles.formRow}>
+          <input
+            placeholder="Subject"
+            style={styles.input}
+            value={subject}
+            onChange={e => setSubject(e.target.value)}
+            required
+          />
+          <input
+            placeholder="Recipient Emails (comma separated)"
+            style={styles.input}
+            value={emailList}
+            onChange={e => setEmailList(e.target.value)}
+            required
+          />
+        </div>
+        <div style={styles.formRow}>
           <textarea
             placeholder="Type your message..."
             style={{ ...styles.input, resize: "vertical", minHeight: 38 }}
             value={msg}
             onChange={e => setMsg(e.target.value)}
+            required
           />
-          <button type="submit" style={styles.button}>Send</button>
+          <button type="submit" style={styles.button} disabled={loading}>Send</button>
         </div>
+        {error && <div style={{ color: "#D8000C", marginTop: 8 }}>{error}</div>}
+        {success && <div style={{ color: "#29947B", marginTop: 8 }}>{success}</div>}
       </form>
       <div>
         <h4 style={{ margin: "16px 0 8px", color: "#30635E", fontWeight: 500 }}>Sent Announcements</h4>
@@ -468,6 +682,14 @@ export default function AdminDashboard() {
   const [weeklyResults, setWeeklyResults] = useState([]);
   const [news, setNews] = useState([]);
   const [messages, setMessages] = useState([]);
+
+  // Logout handler
+  function handleLogout() {
+    if (typeof window !== "undefined") {
+      window.localStorage.removeItem("bp_admin_token");
+      window.location.href = "/admin";
+    }
+  }
 
   const tabs = [
     { key: "Players", label: "Players", body: <PlayersCard players={players} setPlayers={setPlayers} /> },
@@ -496,6 +718,21 @@ export default function AdminDashboard() {
             <Link href="/admin" style={{
               color: "#F5E8C7", textDecoration: "none", fontWeight: "bold", borderBottom: "2px solid #DDE5E0"
             }}>Admin</Link>
+            <button
+              style={{
+                background: "#C71585",
+                color: "#F5E8C7",
+                border: "none",
+                borderRadius: "4px",
+                padding: "0.5rem 1.1rem",
+                fontWeight: "bold",
+                fontSize: "1rem",
+                cursor: "pointer"
+              }}
+              onClick={handleLogout}
+            >
+              Logout
+            </button>
           </div>
         </div>
       </nav>

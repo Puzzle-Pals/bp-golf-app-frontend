@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 
-const ADMIN_PASSWORD = "boss102935";
-const JWT_SECRET = "bpgolfapp"; // Use a strong, random secret in production
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+const JWT_SECRET = process.env.JWT_SECRET;
 
 export default function handler(req, res) {
   if (req.method !== "POST") {
@@ -17,7 +17,7 @@ export default function handler(req, res) {
   const token = jwt.sign(
     { admin: true },
     JWT_SECRET,
-    { expiresIn: "2h" }
+    { expiresIn: "30m" }
   );
 
   res.status(200).json({ token });

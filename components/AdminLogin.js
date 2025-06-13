@@ -1,4 +1,5 @@
 import { useState } from "react";
+import Router from "next/router";
 
 export default function AdminLogin() {
   const [password, setPassword] = useState("");
@@ -18,8 +19,8 @@ export default function AdminLogin() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Login failed");
 
-      localStorage.setItem("bp_admin_token", data.token);
-      window.location.href = "/admin/dashboard";
+      window.localStorage.setItem("bp_admin_token", data.token);
+      Router.replace("/admin/dashboard");
     } catch (err) {
       setError(err.message);
     }

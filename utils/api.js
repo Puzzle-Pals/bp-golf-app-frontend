@@ -3,10 +3,10 @@ const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE_URL || "https://bp-golf-app-backend.vercel.app/api";
 const ADMIN_URL = `${API_BASE}/admin`;
 
-// Get JWT from localStorage
+// Get JWT from secure storage
 function getToken() {
   if (typeof window === "undefined") return null;
-  return localStorage.getItem("adminToken");
+  return window.localStorage.getItem("bp_admin_token");
 }
 
 // Generic admin API call with action param
@@ -18,6 +18,7 @@ export async function adminApi(action, data = {}) {
     method: "POST",
     headers,
     body: JSON.stringify({ action, ...data }),
+    credentials: "include"
   });
   const json = await res.json();
   if (!res.ok) throw new Error(json.error || "API error");
@@ -27,7 +28,7 @@ export async function adminApi(action, data = {}) {
 // Admin Auth (login)
 export async function adminLogin(password) {
   const res = await adminApi("login", { password });
-  if (typeof window !== "undefined") localStorage.setItem("adminToken", res.token);
+  if (typeof window !== "undefined") window.localStorage.setItem("bp_admin_token", res.token);
   return res;
 }
 
