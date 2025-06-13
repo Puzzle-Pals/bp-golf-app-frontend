@@ -1,6 +1,7 @@
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "https://bp-golf-app-backend.vercel.app/api";
 const ADMIN_URL = `${API_BASE}/admin`;
 
+// This function will call the backend API directly for all admin actions (including login/logout).
 export async function adminApi(action, data = {}) {
   const headers = { "Content-Type": "application/json" };
   const res = await fetch(ADMIN_URL, {
@@ -14,15 +15,29 @@ export async function adminApi(action, data = {}) {
   return json;
 }
 
+// Login: send credentials to backend, which sets the cookie.
 export async function adminLogin(password) {
-  const res = await fetch("/api/auth/login", {
+  const res = await fetch(ADMIN_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ password }),
+    body: JSON.stringify({ action: "login", password }),
     credentials: "include"
   });
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || "Login failed");
+  return data;
+}
+
+// Logout: clear admin cookie on backend.
+export async function adminLogout() {
+  const res = await fetch(ADMIN_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action: "logout" }),
+    credentials: "include"
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Logout failed");
   return data;
 }
 

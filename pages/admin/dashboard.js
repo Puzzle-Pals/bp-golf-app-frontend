@@ -18,6 +18,7 @@ import {
   adminUpdateNews,
   adminDeleteNews,
   sendAdminMessage,
+  adminLogout,
 } from "../../utils/api";
 
 // ---- Player Section ----
@@ -38,10 +39,7 @@ function PlayersCard({ players, setPlayers }) {
     }
   }
 
-  useEffect(() => {
-    refreshPlayers();
-    // eslint-disable-next-line
-  }, []);
+  useEffect(() => { refreshPlayers(); }, []);
 
   async function handleSave(e) {
     e.preventDefault();
@@ -49,29 +47,20 @@ function PlayersCard({ players, setPlayers }) {
       setError("All fields are required.");
       return;
     }
-    setError("");
-    setLoading(true);
+    setError(""); setLoading(true);
     try {
       if (editIdx >= 0) {
-        const updated = { ...players[editIdx], first_name: firstName, last_name: lastName, email };
         await adminUpdatePlayer({
-          id: updated.id,
-          first_name: updated.first_name,
-          last_name: updated.last_name,
-          email: updated.email,
-        });
-      } else {
-        await adminAddPlayer({
+          id: players[editIdx].id,
           first_name: firstName,
           last_name: lastName,
           email,
         });
+      } else {
+        await adminAddPlayer({ first_name: firstName, last_name: lastName, email });
       }
       await refreshPlayers();
-      setEditIdx(-1);
-      setFirstName("");
-      setLastName("");
-      setEmail("");
+      setEditIdx(-1); setFirstName(""); setLastName(""); setEmail("");
     } catch (err) {
       setError(err.message);
     }
@@ -84,8 +73,7 @@ function PlayersCard({ players, setPlayers }) {
     setEditIdx(idx);
   }
   async function handleDelete(idx) {
-    setError("");
-    setLoading(true);
+    setError(""); setLoading(true);
     try {
       await adminDeletePlayer(players[idx].id);
       await refreshPlayers();
@@ -100,37 +88,12 @@ function PlayersCard({ players, setPlayers }) {
       <h3 style={styles.cardTitle}>Manage Players</h3>
       <form onSubmit={handleSave} style={{ marginBottom: 20 }}>
         <div style={styles.formRow}>
-          <input
-            type="text"
-            placeholder="First Name"
-            style={styles.input}
-            value={firstName}
-            onChange={e => setFirstName(e.target.value)}
-            required
-          />
-          <input
-            type="text"
-            placeholder="Last Name"
-            style={styles.input}
-            value={lastName}
-            onChange={e => setLastName(e.target.value)}
-            required
-          />
-          <input
-            type="email"
-            placeholder="Email Address"
-            style={styles.input}
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            required
-          />
-          <button type="submit" style={styles.button} disabled={loading}>
-            {editIdx >= 0 ? "Update" : "Add"}
-          </button>
+          <input type="text" placeholder="First Name" style={styles.input} value={firstName} onChange={e => setFirstName(e.target.value)} required />
+          <input type="text" placeholder="Last Name" style={styles.input} value={lastName} onChange={e => setLastName(e.target.value)} required />
+          <input type="email" placeholder="Email Address" style={styles.input} value={email} onChange={e => setEmail(e.target.value)} required />
+          <button type="submit" style={styles.button} disabled={loading}>{editIdx >= 0 ? "Update" : "Add"}</button>
           {editIdx >= 0 && (
-            <button type="button" onClick={() => { setEditIdx(-1); setFirstName(""); setLastName(""); setEmail(""); }} style={styles.cancelButton} disabled={loading}>
-              Cancel
-            </button>
+            <button type="button" onClick={() => { setEditIdx(-1); setFirstName(""); setLastName(""); setEmail(""); }} style={styles.cancelButton} disabled={loading}>Cancel</button>
           )}
         </div>
         {error && <div style={{ color: "#D8000C", marginTop: 8 }}>{error}</div>}
@@ -142,10 +105,7 @@ function PlayersCard({ players, setPlayers }) {
           {players.map((p, i) => (
             <li key={p.id || (p.first_name + p.last_name + p.email)} style={styles.listRow}>
               <span>
-                <Link
-                  href={`/players/${p.id || encodeURIComponent((p.first_name + '-' + p.last_name).toLowerCase())}`}
-                  style={{ color: "#1B4D3E", textDecoration: "underline", fontWeight: 500 }}
-                >
+                <Link href={`/players/${p.id || encodeURIComponent((p.first_name + '-' + p.last_name).toLowerCase())}`} style={{ color: "#1B4D3E", textDecoration: "underline", fontWeight: 500 }}>
                   {p.first_name} {p.last_name}
                 </Link>
                 <span style={{ color: "#A0A0A0" }}> ({p.email})</span>
@@ -180,10 +140,7 @@ function EventsCard({ events, setEvents }) {
     }
   }
 
-  useEffect(() => {
-    refreshEvents();
-    // eslint-disable-next-line
-  }, []);
+  useEffect(() => { refreshEvents(); }, []);
 
   async function handleSave(e) {
     e.preventDefault();
@@ -191,29 +148,20 @@ function EventsCard({ events, setEvents }) {
       setError("Event name is required.");
       return;
     }
-    setError("");
-    setLoading(true);
+    setError(""); setLoading(true);
     try {
       if (editIdx >= 0) {
-        const updated = { ...events[editIdx], name, date, details };
         await adminUpdateEvent({
-          id: updated.id,
-          title: updated.name,
-          event_date: updated.date,
-          description: updated.details,
-        });
-      } else {
-        await adminAddEvent({
+          id: events[editIdx].id,
           title: name,
           event_date: date,
           description: details,
         });
+      } else {
+        await adminAddEvent({ title: name, event_date: date, description: details });
       }
       await refreshEvents();
-      setEditIdx(-1);
-      setName("");
-      setDate("");
-      setDetails("");
+      setEditIdx(-1); setName(""); setDate(""); setDetails("");
     } catch (err) {
       setError(err.message);
     }
@@ -226,8 +174,7 @@ function EventsCard({ events, setEvents }) {
     setEditIdx(idx);
   }
   async function handleDelete(idx) {
-    setError("");
-    setLoading(true);
+    setError(""); setLoading(true);
     try {
       await adminDeleteEvent(events[idx].id);
       await refreshEvents();
@@ -242,35 +189,14 @@ function EventsCard({ events, setEvents }) {
       <h3 style={styles.cardTitle}>Manage Events</h3>
       <form onSubmit={handleSave} style={{ marginBottom: 20 }}>
         <div style={styles.formRow}>
-          <input
-            type="text"
-            placeholder="Event Name"
-            style={styles.input}
-            value={name}
-            onChange={e => setName(e.target.value)}
-            required
-          />
-          <input
-            type="date"
-            style={styles.input}
-            value={date}
-            onChange={e => setDate(e.target.value)}
-          />
+          <input type="text" placeholder="Event Name" style={styles.input} value={name} onChange={e => setName(e.target.value)} required />
+          <input type="date" style={styles.input} value={date} onChange={e => setDate(e.target.value)} />
         </div>
-        <textarea
-          placeholder="Event Details"
-          style={{ ...styles.input, resize: "vertical", minHeight: 38 }}
-          value={details}
-          onChange={e => setDetails(e.target.value)}
-        />
+        <textarea placeholder="Event Details" style={{ ...styles.input, resize: "vertical", minHeight: 38 }} value={details} onChange={e => setDetails(e.target.value)} />
         <div>
-          <button type="submit" style={styles.button} disabled={loading}>
-            {editIdx >= 0 ? "Update" : "Add"}
-          </button>
+          <button type="submit" style={styles.button} disabled={loading}>{editIdx >= 0 ? "Update" : "Add"}</button>
           {editIdx >= 0 && (
-            <button type="button" onClick={() => { setEditIdx(-1); setName(""); setDate(""); setDetails(""); }} style={styles.cancelButton} disabled={loading}>
-              Cancel
-            </button>
+            <button type="button" onClick={() => { setEditIdx(-1); setName(""); setDate(""); setDetails(""); }} style={styles.cancelButton} disabled={loading}>Cancel</button>
           )}
         </div>
         {error && <div style={{ color: "#D8000C", marginTop: 8 }}>{error}</div>}
@@ -319,10 +245,7 @@ function WeeklyResultsCard({ players, weeklyResults, setWeeklyResults }) {
     }
   }
 
-  useEffect(() => {
-    refreshWeeklyResults();
-    // eslint-disable-next-line
-  }, []);
+  useEffect(() => { refreshWeeklyResults(); }, []);
 
   async function handleSave(e) {
     e.preventDefault();
@@ -330,25 +253,16 @@ function WeeklyResultsCard({ players, weeklyResults, setWeeklyResults }) {
       setError("Week number is required.");
       return;
     }
-    setError("");
-    setLoading(true);
+    setError(""); setLoading(true);
     try {
-      const entry = {
-        weekNum,
-        wins,
-        second,
-        highScore,
-        deuce,
-        ctp,
-      };
+      const entry = { weekNum, wins, second, highScore, deuce, ctp };
       if (editIdx >= 0) {
         await adminUpdateWeeklyResult({ ...weeklyResults[editIdx], ...entry });
       } else {
         await adminAddWeeklyResult(entry);
       }
       await refreshWeeklyResults();
-      setEditIdx(-1);
-      setWeekNum(""); setWins(""); setSecond(""); setHighScore(""); setDeuce(""); setCtp("");
+      setEditIdx(-1); setWeekNum(""); setWins(""); setSecond(""); setHighScore(""); setDeuce(""); setCtp("");
     } catch (err) {
       setError(err.message);
     }
@@ -356,17 +270,11 @@ function WeeklyResultsCard({ players, weeklyResults, setWeeklyResults }) {
   }
   function handleEdit(idx) {
     const w = weeklyResults[idx];
-    setWeekNum(w.weekNum || w.week_number);
-    setWins(w.wins);
-    setSecond(w.second);
-    setHighScore(w.highScore);
-    setDeuce(w.deuce);
-    setCtp(w.ctp);
-    setEditIdx(idx);
+    setWeekNum(w.weekNum || w.week_number); setWins(w.wins); setSecond(w.second);
+    setHighScore(w.highScore); setDeuce(w.deuce); setCtp(w.ctp); setEditIdx(idx);
   }
   async function handleDelete(idx) {
-    setError("");
-    setLoading(true);
+    setError(""); setLoading(true);
     try {
       await adminDeleteWeeklyResult(weeklyResults[idx].id);
       await refreshWeeklyResults();
@@ -381,68 +289,34 @@ function WeeklyResultsCard({ players, weeklyResults, setWeeklyResults }) {
       <h3 style={styles.cardTitle}>Weekly Results</h3>
       <form onSubmit={handleSave} style={{ marginBottom: 20 }}>
         <div style={styles.formRow}>
-          <input
-            type="number"
-            placeholder="Week #"
-            style={styles.input}
-            value={weekNum}
-            onChange={e => setWeekNum(e.target.value)}
-            required
-            min={1}
-          />
+          <input type="number" placeholder="Week #" style={styles.input} value={weekNum} onChange={e => setWeekNum(e.target.value)} required min={1} />
           <select style={styles.input} value={wins} onChange={e => setWins(e.target.value)} required>
             <option value="">Winner</option>
-            {players.map(p => (
-              <option key={p.id} value={p.id}>
-                {p.first_name} {p.last_name}
-              </option>
-            ))}
+            {players.map(p => (<option key={p.id} value={p.id}>{p.first_name} {p.last_name}</option>))}
           </select>
           <select style={styles.input} value={second} onChange={e => setSecond(e.target.value)}>
             <option value="">2nd Place</option>
-            {players.map(p => (
-              <option key={p.id} value={p.id}>
-                {p.first_name} {p.last_name}
-              </option>
-            ))}
+            {players.map(p => (<option key={p.id} value={p.id}>{p.first_name} {p.last_name}</option>))}
           </select>
         </div>
         <div style={styles.formRow}>
           <select style={styles.input} value={highScore} onChange={e => setHighScore(e.target.value)}>
             <option value="">Highest Score</option>
-            {players.map(p => (
-              <option key={p.id} value={p.id}>
-                {p.first_name} {p.last_name}
-              </option>
-            ))}
+            {players.map(p => (<option key={p.id} value={p.id}>{p.first_name} {p.last_name}</option>))}
           </select>
           <select style={styles.input} value={deuce} onChange={e => setDeuce(e.target.value)}>
             <option value="">Deuce Pot Wins</option>
-            {players.map(p => (
-              <option key={p.id} value={p.id}>
-                {p.first_name} {p.last_name}
-              </option>
-            ))}
+            {players.map(p => (<option key={p.id} value={p.id}>{p.first_name} {p.last_name}</option>))}
           </select>
           <select style={styles.input} value={ctp} onChange={e => setCtp(e.target.value)}>
             <option value="">Closest to Pin</option>
-            {players.map(p => (
-              <option key={p.id} value={p.id}>
-                {p.first_name} {p.last_name}
-              </option>
-            ))}
+            {players.map(p => (<option key={p.id} value={p.id}>{p.first_name} {p.last_name}</option>))}
           </select>
         </div>
         <div>
-          <button type="submit" style={styles.button} disabled={loading}>
-            {editIdx >= 0 ? "Update" : "Add"}
-          </button>
+          <button type="submit" style={styles.button} disabled={loading}>{editIdx >= 0 ? "Update" : "Add"}</button>
           {editIdx >= 0 && (
-            <button type="button" onClick={() => {
-              setEditIdx(-1); setWeekNum(""); setWins(""); setSecond(""); setHighScore(""); setDeuce(""); setCtp("");
-            }} style={styles.cancelButton} disabled={loading}>
-              Cancel
-            </button>
+            <button type="button" onClick={() => { setEditIdx(-1); setWeekNum(""); setWins(""); setSecond(""); setHighScore(""); setDeuce(""); setCtp(""); }} style={styles.cancelButton} disabled={loading}>Cancel</button>
           )}
         </div>
         {error && <div style={{ color: "#D8000C", marginTop: 8 }}>{error}</div>}
@@ -451,13 +325,10 @@ function WeeklyResultsCard({ players, weeklyResults, setWeeklyResults }) {
         <h4 style={{ margin: "16px 0 8px", color: "#30635E", fontWeight: 500 }}>Weekly Results List</h4>
         {weeklyResults.length === 0 && <div style={{ color: "#9CA7A0" }}>No results yet.</div>}
         <ul style={{ padding: 0, listStyle: "none", margin: 0 }}>
-          {weeklyResults
-            .slice()
-            .sort((a, b) => Number(a.weekNum || a.week_number) - Number(b.weekNum || b.week_number))
-            .map((w, i) => (
+          {weeklyResults.slice().sort((a, b) => Number(a.weekNum || a.week_number) - Number(b.weekNum || b.week_number)).map((w, i) => (
             <li key={w.id || w.weekNum + w.wins} style={styles.listRow}>
               <span>
-                <b>Week {w.weekNum || w.week_number}</b>: 
+                <b>Week {w.weekNum || w.week_number}</b>:
                 <span style={{ marginLeft: 10 }}>
                   Winner: {w.wins || "-"}, 2nd: {w.second || "-"}, High Score: {w.highScore || "-"}, Deuce: {w.deuce || "-"}, CTP: {w.ctp || "-"}
                 </span>
@@ -491,10 +362,7 @@ function NewsCard({ news, setNews }) {
     }
   }
 
-  useEffect(() => {
-    refreshNews();
-    // eslint-disable-next-line
-  }, []);
+  useEffect(() => { refreshNews(); }, []);
 
   async function handleSave(e) {
     e.preventDefault();
@@ -502,18 +370,15 @@ function NewsCard({ news, setNews }) {
       setError("Headline is required.");
       return;
     }
-    setError("");
-    setLoading(true);
+    setError(""); setLoading(true);
     try {
       if (editIdx >= 0) {
-        const updated = { ...news[editIdx], title: headline, details: body };
-        await adminUpdateNews({ id: updated.id, title: updated.title, details: updated.details });
+        await adminUpdateNews({ id: news[editIdx].id, title: headline, details: body });
       } else {
         await adminAddNews({ title: headline, details: body });
       }
       await refreshNews();
-      setEditIdx(-1);
-      setHeadline(""); setBody("");
+      setEditIdx(-1); setHeadline(""); setBody("");
     } catch (err) {
       setError(err.message);
     }
@@ -525,8 +390,7 @@ function NewsCard({ news, setNews }) {
     setEditIdx(idx);
   }
   async function handleDelete(idx) {
-    setError("");
-    setLoading(true);
+    setError(""); setLoading(true);
     try {
       await adminDeleteNews(news[idx].id);
       await refreshNews();
@@ -541,29 +405,13 @@ function NewsCard({ news, setNews }) {
       <h3 style={styles.cardTitle}>Post League News</h3>
       <form onSubmit={handleSave} style={{ marginBottom: 20 }}>
         <div style={styles.formRow}>
-          <input
-            type="text"
-            placeholder="Headline"
-            style={styles.input}
-            value={headline}
-            onChange={e => setHeadline(e.target.value)}
-            required
-          />
+          <input type="text" placeholder="Headline" style={styles.input} value={headline} onChange={e => setHeadline(e.target.value)} required />
         </div>
-        <textarea
-          placeholder="News details"
-          style={{ ...styles.input, resize: "vertical", minHeight: 38 }}
-          value={body}
-          onChange={e => setBody(e.target.value)}
-        />
+        <textarea placeholder="News details" style={{ ...styles.input, resize: "vertical", minHeight: 38 }} value={body} onChange={e => setBody(e.target.value)} />
         <div>
-          <button type="submit" style={styles.button} disabled={loading}>
-            {editIdx >= 0 ? "Update" : "Add"}
-          </button>
+          <button type="submit" style={styles.button} disabled={loading}>{editIdx >= 0 ? "Update" : "Add"}</button>
           {editIdx >= 0 && (
-            <button type="button" onClick={() => { setEditIdx(-1); setHeadline(""); setBody(""); }} style={styles.cancelButton} disabled={loading}>
-              Cancel
-            </button>
+            <button type="button" onClick={() => { setEditIdx(-1); setHeadline(""); setBody(""); }} style={styles.cancelButton} disabled={loading}>Cancel</button>
           )}
         </div>
         {error && <div style={{ color: "#D8000C", marginTop: 8 }}>{error}</div>}
@@ -601,8 +449,7 @@ function MessagingCard({ messages, setMessages }) {
 
   async function handleSend(e) {
     e.preventDefault();
-    setError("");
-    setSuccess("");
+    setError(""); setSuccess("");
     if (!msg.trim() || !subject.trim() || !emailList.trim()) {
       setError("Subject, recipients, and message are required.");
       return;
@@ -616,9 +463,7 @@ function MessagingCard({ messages, setMessages }) {
       });
       setSuccess("Message sent!");
       setMessages([...messages, { msg, date: new Date().toLocaleString() }]);
-      setMsg("");
-      setSubject("");
-      setEmailList("");
+      setMsg(""); setSubject(""); setEmailList("");
     } catch (err) {
       setError(err.message);
     }
@@ -629,29 +474,11 @@ function MessagingCard({ messages, setMessages }) {
       <h3 style={styles.cardTitle}>Send Announcement</h3>
       <form onSubmit={handleSend} style={{ marginBottom: 20 }}>
         <div style={styles.formRow}>
-          <input
-            placeholder="Subject"
-            style={styles.input}
-            value={subject}
-            onChange={e => setSubject(e.target.value)}
-            required
-          />
-          <input
-            placeholder="Recipient Emails (comma separated)"
-            style={styles.input}
-            value={emailList}
-            onChange={e => setEmailList(e.target.value)}
-            required
-          />
+          <input placeholder="Subject" style={styles.input} value={subject} onChange={e => setSubject(e.target.value)} required />
+          <input placeholder="Recipient Emails (comma separated)" style={styles.input} value={emailList} onChange={e => setEmailList(e.target.value)} required />
         </div>
         <div style={styles.formRow}>
-          <textarea
-            placeholder="Type your message..."
-            style={{ ...styles.input, resize: "vertical", minHeight: 38 }}
-            value={msg}
-            onChange={e => setMsg(e.target.value)}
-            required
-          />
+          <textarea placeholder="Type your message..." style={{ ...styles.input, resize: "vertical", minHeight: 38 }} value={msg} onChange={e => setMsg(e.target.value)} required />
           <button type="submit" style={styles.button} disabled={loading}>Send</button>
         </div>
         {error && <div style={{ color: "#D8000C", marginTop: 8 }}>{error}</div>}
@@ -686,7 +513,6 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     (async () => {
-      // IMPORTANT: Use the backend API URL for checkAuth!
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_BASE_URL || "https://bp-golf-app-backend.vercel.app/api"}/admin`,
         {
@@ -705,7 +531,7 @@ export default function AdminDashboard() {
   }, []);
 
   async function handleLogout() {
-    await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
+    await adminLogout();
     window.location.href = "/admin";
   }
 
