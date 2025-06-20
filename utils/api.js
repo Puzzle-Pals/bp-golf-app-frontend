@@ -1,3 +1,4 @@
+// Use the relative path that will be handled by your vercel.json rewrite
 const ADMIN_URL = "/api/admin";
 
 export async function adminApi(action, data = {}) {
@@ -6,6 +7,7 @@ export async function adminApi(action, data = {}) {
     method: "POST",
     headers,
     body: JSON.stringify({ action, ...data }),
+    credentials: "include" // Important for cookies/sessions
   });
   const json = await res.json();
   if (!res.ok) throw new Error(json.error || "API error");
@@ -17,6 +19,7 @@ export async function adminLogin(password) {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ action: "login", password }),
+    credentials: "include" // Important for cookies/sessions
   });
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || "Login failed");
@@ -28,6 +31,7 @@ export async function adminLogout() {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ action: "logout" }),
+    credentials: "include" // Important for cookies/sessions
   });
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || "Logout failed");
