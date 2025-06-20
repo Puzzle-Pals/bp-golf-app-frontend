@@ -1,7 +1,5 @@
-// Use a direct relative URL to avoid any cross-origin issues
 const ADMIN_URL = "/api/admin";
 
-// This function will call the admin API for all admin actions
 export async function adminApi(action, data = {}) {
   const headers = { "Content-Type": "application/json" };
   const res = await fetch(ADMIN_URL, {
@@ -14,7 +12,6 @@ export async function adminApi(action, data = {}) {
   return json;
 }
 
-// Login: send credentials to backend
 export async function adminLogin(password) {
   const res = await fetch(ADMIN_URL, {
     method: "POST",
@@ -26,7 +23,6 @@ export async function adminLogin(password) {
   return data;
 }
 
-// Logout: clear admin session
 export async function adminLogout() {
   const res = await fetch(ADMIN_URL, {
     method: "POST",
@@ -48,7 +44,6 @@ export async function sendAdminMessage({ recipientEmails, subject, message }) {
   });
 }
 
-// Keep all the other functions the same
 export async function adminGetPlayers() { return adminApi("getPlayers"); }
 export async function adminAddPlayer(player) { return adminApi("addPlayer", player); }
 export async function adminUpdatePlayer(player) { return adminApi("updatePlayer", player); }
