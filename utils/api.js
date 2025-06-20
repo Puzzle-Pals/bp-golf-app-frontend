@@ -1,40 +1,37 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "https://bp-golf-app-backend.vercel.app/api";
-const ADMIN_URL = `${API_BASE}/admin`;
+// Use local proxy instead of direct backend calls
+const ADMIN_PROXY = "/api/proxy";
 
-// This function will call the backend API directly for all admin actions (including login/logout).
+// This function will call the backend API through our proxy for all admin actions
 export async function adminApi(action, data = {}) {
   const headers = { "Content-Type": "application/json" };
-  const res = await fetch(ADMIN_URL, {
+  const res = await fetch(ADMIN_PROXY, {
     method: "POST",
     headers,
     body: JSON.stringify({ action, ...data }),
-    credentials: "include"
   });
   const json = await res.json();
   if (!res.ok) throw new Error(json.error || "API error");
   return json;
 }
 
-// Login: send credentials to backend, which sets the cookie.
+// Login: send credentials to backend through proxy
 export async function adminLogin(password) {
-  const res = await fetch(ADMIN_URL, {
+  const res = await fetch(ADMIN_PROXY, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ action: "login", password }),
-    credentials: "include"
   });
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || "Login failed");
   return data;
 }
 
-// Logout: clear admin cookie on backend.
+// Logout: clear admin session through proxy
 export async function adminLogout() {
-  const res = await fetch(ADMIN_URL, {
+  const res = await fetch(ADMIN_PROXY, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ action: "logout" }),
-    credentials: "include"
   });
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || "Logout failed");
@@ -51,6 +48,7 @@ export async function sendAdminMessage({ recipientEmails, subject, message }) {
   });
 }
 
+// Keep all the other functions the same
 export async function adminGetPlayers() { return adminApi("getPlayers"); }
 export async function adminAddPlayer(player) { return adminApi("addPlayer", player); }
 export async function adminUpdatePlayer(player) { return adminApi("updatePlayer", player); }
