@@ -1,10 +1,10 @@
-// Use local proxy instead of direct backend calls
-const ADMIN_PROXY = "/api/proxy";
+// Use a direct relative URL to avoid any cross-origin issues
+const ADMIN_URL = "/api/admin";
 
-// This function will call the backend API through our proxy for all admin actions
+// This function will call the admin API for all admin actions
 export async function adminApi(action, data = {}) {
   const headers = { "Content-Type": "application/json" };
-  const res = await fetch(ADMIN_PROXY, {
+  const res = await fetch(ADMIN_URL, {
     method: "POST",
     headers,
     body: JSON.stringify({ action, ...data }),
@@ -14,9 +14,9 @@ export async function adminApi(action, data = {}) {
   return json;
 }
 
-// Login: send credentials to backend through proxy
+// Login: send credentials to backend
 export async function adminLogin(password) {
-  const res = await fetch(ADMIN_PROXY, {
+  const res = await fetch(ADMIN_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ action: "login", password }),
@@ -26,9 +26,9 @@ export async function adminLogin(password) {
   return data;
 }
 
-// Logout: clear admin session through proxy
+// Logout: clear admin session
 export async function adminLogout() {
-  const res = await fetch(ADMIN_PROXY, {
+  const res = await fetch(ADMIN_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ action: "logout" }),
