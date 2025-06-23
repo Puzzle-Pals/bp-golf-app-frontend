@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import Link from 'next/link';
 
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "https://bp-golf-app-backend.vercel.app/api";
+
 export default function AdminLogin({ setIsLoggedIn }) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -11,20 +13,21 @@ export default function AdminLogin({ setIsLoggedIn }) {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch('/api/admin-login', {
+      const res = await fetch(`${API_BASE}/admin`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password }),
+        body: JSON.stringify({ action: "login", password }),
+        credentials: 'include'
       });
       if (!res.ok) {
-        const data = await res.json();
+        const data = await res.json().catch(() => ({}));
         setError(data.error || 'Invalid password');
         setLoading(false);
         return;
       }
       setIsLoggedIn(true);
     } catch (err) {
-      setError('Failed to login. Please try again.');
+      setError('Failed to connect to server.');
       setLoading(false);
     }
   }
