@@ -1,8 +1,11 @@
-import { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
 import Head from "next/head";
 import AdminLogin from "../../components/AdminLogin";
-import AdminDashboard from "../../components/AdminDashboard";
 import { adminApi } from "../../utils/api";
+import { useState, useEffect } from "react";
+
+// Dynamically import the dashboard page as a component
+const AdminDashboard = dynamic(() => import("./dashboard"), { ssr: false });
 
 export default function Admin() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -42,7 +45,7 @@ export default function Admin() {
       </Head>
       
       {isLoggedIn ? (
-        <AdminDashboard setIsLoggedIn={setIsLoggedIn} />
+        <AdminDashboard />
       ) : (
         <AdminLogin setIsLoggedIn={setIsLoggedIn} />
       )}
