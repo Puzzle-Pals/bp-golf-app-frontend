@@ -1,61 +1,123 @@
-import { useState } from "react";
-import { adminLogin } from "../utils/api";
+import { useState } from 'react';
+import Link from 'next/link';
 
 export default function AdminLogin({ setIsLoggedIn }) {
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e) => {
+  async function handleLogin(e) {
     e.preventDefault();
-    setIsLoading(true);
-    setError("");
-
+    setLoading(true);
+    setError('');
     try {
-      await adminLogin(password);
+      const res = await fetch('/api/admin-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        setError(data.error || 'Invalid password');
+        setLoading(false);
+        return;
+      }
       setIsLoggedIn(true);
     } catch (err) {
-      console.error("Login error:", err);
-      setError("Invalid password");
-    } finally {
-      setIsLoading(false);
+      setError('Failed to login. Please try again.');
+      setLoading(false);
     }
-  };
+  }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
-      <div className="max-w-md w-full bg-white rounded-lg shadow-md p-8">
-        <h2 className="text-2xl font-bold text-center mb-6">Admin Login</h2>
-        {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-            {error}
+    <div style={{ minHeight: '100vh', backgroundColor: '#1B4D3E', color: '#F5E8C7' }}>
+      <nav style={{ backgroundColor: '#3C2F2F', padding: '1rem', boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>
+        <div style={{
+          maxWidth: '1200px',
+          margin: '0 auto',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }}>
+          <Link href="/" style={{
+            color: '#F5E8C7',
+            fontSize: '1.5rem',
+            fontWeight: 'bold',
+            textDecoration: 'none'
+          }}>BP Men’s League</Link>
+          <div style={{ display: 'flex', gap: '1rem' }}>
+            <Link href="/weekly-results" style={{ color: '#F5E8C7', textDecoration: 'none' }}>Weekly Results</Link>
+            <Link href="/player-stats" style={{ color: '#F5E8C7', textDecoration: 'none' }}>Player Stats</Link>
+            <Link href="/leaderboard" style={{ color: '#F5E8C7', textDecoration: 'none' }}>Leaderboard</Link>
           </div>
-        )}
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="password">
-              Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              required
-            />
-          </div>
-          <div className="flex items-center justify-between">
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full"
-            >
-              {isLoading ? "Logging in..." : "Login"}
-            </button>
-          </div>
+        </div>
+      </nav>
+      <main style={{
+        maxWidth: '400px',
+        margin: '4rem auto 0 auto',
+        padding: '2.5rem',
+        background: '#3C2F2F',
+        borderRadius: '0.75rem',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+        color: '#F5E8C7'
+      }}>
+        <h1 style={{
+          fontSize: '2rem',
+          fontWeight: 'bold',
+          marginBottom: '2rem',
+          letterSpacing: '1px',
+          textAlign: 'center'
+        }}>
+          Admin Login
+        </h1>
+        <form onSubmit={handleLogin}>
+          <label htmlFor="admin-password" style={{ display: 'block', marginBottom: '1rem', fontWeight: 600 }}>
+            Enter Admin Password
+          </label>
+          <input
+            type="password"
+            id="admin-password"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            style={{
+              width: '100%',
+              padding: '0.75rem',
+              borderRadius: '0.5rem',
+              border: '1px solid #F5E8C7',
+              background: '#1B4D3E',
+              color: '#F5E8C7',
+              fontSize: '1.1rem',
+              marginBottom: '1.5rem'
+            }}
+            autoComplete="current-password"
+            disabled={loading}
+            required
+          />
+          {error && (
+            <div style={{ color: '#C71585', marginBottom: '1rem', fontWeight: 500 }}>
+              {error}
+            </div>
+          )}
+          <button
+            type="submit"
+            disabled={loading}
+            style={{
+              width: '100%',
+              padding: '0.9rem',
+              background: '#87CEEB',
+              color: '#1B4D3E',
+              fontWeight: 'bold',
+              border: 'none',
+              borderRadius: '0.5rem',
+              fontSize: '1.1rem',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              opacity: loading ? 0.7 : 1
+            }}
+          >
+            {loading ? 'Logging In...' : 'Login'}
+          </button>
         </form>
-      </div>
+      </main>
     </div>
   );
 }
