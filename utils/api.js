@@ -1,5 +1,4 @@
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_BASE_URL || "https://bp-golf-app-backend.vercel.app/api";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || '/api';
 const ADMIN_URL = `${API_BASE}/admin`;
 
 function getToken() {
