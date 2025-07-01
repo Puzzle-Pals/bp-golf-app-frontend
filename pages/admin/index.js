@@ -6,16 +6,20 @@ import { adminLogin } from "../../utils/api";
 export default function AdminLogin() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   async function handleLogin(e) {
     e.preventDefault();
     setError("");
+    setLoading(true);
     try {
       await adminLogin(password);
       router.push("/admin/dashboard");
     } catch (err) {
-      setError(err.message || "Invalid password");
+      setError(err?.message || "Invalid password");
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -49,6 +53,7 @@ export default function AdminLogin() {
             value={password}
             onChange={e => setPassword(e.target.value)}
             placeholder="Password"
+            disabled={loading}
             style={{
               width: '100%',
               marginBottom: '1rem',
@@ -60,18 +65,18 @@ export default function AdminLogin() {
               color: '#1B4D3E'
             }}
           />
-          <button type="submit" style={{
+          <button type="submit" disabled={loading} style={{
             width: '100%',
             padding: '0.75rem',
-            background: '#1B4D3E',
+            background: loading ? "#888" : "#1B4D3E",
             color: '#F5E8C7',
             border: 'none',
             borderRadius: '0.25rem',
             fontWeight: 'bold',
             fontSize: '1rem',
-            cursor: 'pointer'
+            cursor: loading ? 'not-allowed' : 'pointer'
           }}>
-            Login
+            {loading ? "Logging in..." : "Login"}
           </button>
           {error && <div style={{ color: '#C71585', marginTop: '1rem' }}>{error}</div>}
         </form>

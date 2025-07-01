@@ -8,11 +8,16 @@ export default function PlayersAdmin() {
     last_name: "",
     email: "",
   });
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    setLoading(true);
     fetch("/api/players")
       .then((r) => r.json())
-      .then(setPlayers);
+      .then(data => setPlayers(Array.isArray(data) ? data : []))
+      .catch(() => setError("Failed to load players"))
+      .finally(() => setLoading(false));
   }, []);
 
   function handleChange(e) {
@@ -21,13 +26,16 @@ export default function PlayersAdmin() {
 
   function handleAddPlayer(e) {
     e.preventDefault();
+    setLoading(true);
     fetch("/api/players", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(form),
     })
       .then((r) => r.json())
-      .then((newPlayer) => setPlayers((p) => [...p, newPlayer]));
+      .then((newPlayer) => setPlayers((p) => Array.isArray(p) ? [...p, newPlayer] : [newPlayer]))
+      .catch(() => setError("Failed to add player"))
+      .finally(() => setLoading(false));
     setForm({ first_name: "", last_name: "", email: "" });
     setShowForm(false);
   }
@@ -35,6 +43,8 @@ export default function PlayersAdmin() {
   return (
     <div>
       <h2>Player Management</h2>
+      {error && <div style={{ color: "#C71585" }}>{error}</div>}
+      {loading && <div>Loading...</div>}
       <button onClick={() => setShowForm((prev) => !prev)}>
         {showForm ? "Close" : "Add New Player"}
       </button>
@@ -62,7 +72,7 @@ export default function PlayersAdmin() {
             required
             type="email"
           />
-          <button type="submit">Add Player</button>
+          <button type="submit" disabled={loading}>Add Player</button>
         </form>
       )}
       <table>
@@ -74,8 +84,8 @@ export default function PlayersAdmin() {
           </tr>
         </thead>
         <tbody>
-          {players.map((p) => (
-            <tr key={p.id}>
+          {Array.isArray(players) && players.map((p) => (
+            <tr key={p.id || p.email}>
               <td>{p.first_name}</td>
               <td>{p.last_name}</td>
               <td>{p.email}</td>

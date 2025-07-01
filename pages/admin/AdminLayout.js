@@ -1,5 +1,4 @@
 import Link from "next/link";
-
 export default function AdminLayout({ children, showLogout = false, onLogout }) {
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#1B4D3E', color: '#F5E8C7' }}>

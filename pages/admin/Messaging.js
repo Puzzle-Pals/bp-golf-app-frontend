@@ -1,27 +1,39 @@
-import Messaging from "../../components/Messaging";
-import Link from "next/link";
-
+import { useState } from "react";
 export default function AdminMessaging() {
+  const [message, setMessage] = useState("");
+  const [status, setStatus] = useState(null);
+
+  function handleSend(e) {
+    e.preventDefault();
+    setStatus(null);
+    fetch("/api/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message }),
+    })
+      .then(r => r.json())
+      .then(() => {
+        setStatus("Message sent!");
+        setMessage("");
+      })
+      .catch(() => setStatus("Failed to send message"));
+  }
+
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#1B4D3E', color: '#F5E8C7' }}>
-      <nav style={{ backgroundColor: '#3C2F2F', padding: '1rem', boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Link href="/" style={{ color: '#F5E8C7', fontSize: '1.5rem', fontWeight: 'bold', textDecoration: 'none' }}>
-            BP Men’s League (Admin)
-          </Link>
-          <div style={{ display: 'flex', gap: '1rem' }}>
-            <Link href="/admin/dashboard" style={{ color: '#F5E8C7', textDecoration: 'none' }}>Dashboard</Link>
-            <Link href="/admin/players" style={{ color: '#F5E8C7', textDecoration: 'none' }}>Players</Link>
-            <Link href="/admin/events" style={{ color: '#F5E8C7', textDecoration: 'none' }}>Events</Link>
-            <Link href="/admin/add-week" style={{ color: '#F5E8C7', textDecoration: 'none' }}>Add Week</Link>
-            <Link href="/admin/settings" style={{ color: '#F5E8C7', textDecoration: 'none' }}>Settings</Link>
-            <Link href="/" style={{ color: '#F5E8C7', textDecoration: 'none' }}>Logout</Link>
-          </div>
-        </div>
-      </nav>
-      <main style={{ maxWidth: '1200px', margin: '0 auto', padding: '3rem 1rem' }}>
-        <Messaging />
-      </main>
+    <div>
+      <h2>Messaging</h2>
+      {status && <div style={{ color: status.startsWith("Failed") ? "#C71585" : "#4BB543" }}>{status}</div>}
+      <form onSubmit={handleSend} style={{ marginTop: 16, marginBottom: 16 }}>
+        <textarea
+          value={message}
+          onChange={e => setMessage(e.target.value)}
+          placeholder="Type your message here..."
+          rows={4}
+          style={{ width: "100%" }}
+          required
+        />
+        <button type="submit">Send Message</button>
+      </form>
     </div>
   );
 }

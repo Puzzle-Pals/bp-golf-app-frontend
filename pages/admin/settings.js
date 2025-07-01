@@ -1,27 +1,35 @@
-import ScoringSystemToggle from "../../components/ScoringSystemToggle";
-import Link from "next/link";
-
+import { useState, useEffect } from "react";
 export default function AdminSettings() {
+  const [scoring, setScoring] = useState("default");
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    fetch("/api/settings")
+      .then((r) => r.json())
+      .then(data => setScoring(data?.scoring || "default"))
+      .catch(() => setError("Failed to load settings"));
+  }, []);
+
+  function handleToggle() {
+    const newScoring = scoring === "default" ? "alternative" : "default";
+    fetch("/api/settings", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ scoring: newScoring }),
+    })
+      .then(r => r.json())
+      .then(data => setScoring(data?.scoring || newScoring))
+      .catch(() => setError("Failed to update settings"));
+  }
+
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#1B4D3E', color: '#F5E8C7' }}>
-      <nav style={{ backgroundColor: '#3C2F2F', padding: '1rem', boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Link href="/" style={{ color: '#F5E8C7', fontSize: '1.5rem', fontWeight: 'bold', textDecoration: 'none' }}>
-            BP Men’s League (Admin)
-          </Link>
-          <div style={{ display: 'flex', gap: '1rem' }}>
-            <Link href="/admin/dashboard" style={{ color: '#F5E8C7', textDecoration: 'none' }}>Dashboard</Link>
-            <Link href="/admin/players" style={{ color: '#F5E8C7', textDecoration: 'none' }}>Players</Link>
-            <Link href="/admin/events" style={{ color: '#F5E8C7', textDecoration: 'none' }}>Events</Link>
-            <Link href="/admin/add-week" style={{ color: '#F5E8C7', textDecoration: 'none' }}>Add Week</Link>
-            <Link href="/admin/settings" style={{ color: '#F5E8C7', textDecoration: 'none' }}>Settings</Link>
-            <Link href="/" style={{ color: '#F5E8C7', textDecoration: 'none' }}>Logout</Link>
-          </div>
-        </div>
-      </nav>
-      <main style={{ maxWidth: '1200px', margin: '0 auto', padding: '3rem 1rem' }}>
-        <ScoringSystemToggle />
-      </main>
+    <div>
+      <h2>Settings</h2>
+      {error && <div style={{ color: "#C71585" }}>{error}</div>}
+      <div>
+        <span>Scoring system: <b>{scoring}</b></span>
+        <button onClick={handleToggle} style={{ marginLeft: 16 }}>Toggle Scoring</button>
+      </div>
     </div>
   );
 }
