@@ -1,22 +1,15 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { fetchNews } from '../utils/api';
 
 export default function Home() {
   const [news, setNews] = useState([]);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    const fetchNews = async () => {
-      try {
-        const res = await fetch('/api/news');
-        if (!res.ok) throw new Error('Failed to fetch news');
-        const data = await res.json();
-        setNews(data);
-      } catch {
-        setError('Failed to fetch news');
-      }
-    };
-    fetchNews();
+    fetchNews()
+      .then(setNews)
+      .catch(() => setError('Failed to fetch news'));
   }, []);
 
   return (
@@ -54,7 +47,9 @@ export default function Home() {
                   <div style={{ fontWeight: 600, marginBottom: '0.5rem', color: '#87CEEB' }}>
                     {item.date ? new Date(item.date).toLocaleDateString() : ''}
                   </div>
-                  <div style={{ whiteSpace: 'pre-wrap', color: '#F5E8C7' }}>{item.details}</div>
+                  <div style={{ whiteSpace: 'pre-wrap', color: '#F5E8C7' }}>
+                    {item.details || item.body || item.news || item.title || ''}
+                  </div>
                 </li>
               ))}
             </ul>
