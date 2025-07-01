@@ -10,7 +10,6 @@ import AdminEvents from "./events";
 import AddWeekAdmin from "./add-week";
 import AdminSettings from "./settings";
 import AdminMessaging from "./Messaging";
-import AdminDiagnostic from "./diagnostic";
 
 const TABS = [
   { label: "Players", key: "players", Component: PlayersAdmin },
@@ -18,7 +17,7 @@ const TABS = [
   { label: "Add Week", key: "add-week", Component: AddWeekAdmin },
   { label: "Settings", key: "settings", Component: AdminSettings },
   { label: "Messaging", key: "messaging", Component: AdminMessaging },
-  { label: "Diagnostic", key: "diagnostic", Component: AdminDiagnostic },
+  // Diagnostic tab removed as requested
 ];
 
 export default function AdminDashboard() {
